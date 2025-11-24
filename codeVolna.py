@@ -17,23 +17,27 @@ def leave(a=None):
     running = False
     pygame.quit()
     sys.exit()
+
 def incr(a):
     plan["incr"].change_valeur(a)
+
 def nothing(a=None):
     pass
+
 class Sprite:
-    def __init__(self,x,y,L=40,l=20,type="type.png",nom="bo"):
+    def __init__(self,x,y,L=40,l=20,type="img/type.png",nom="bo"):
         self.x=x
         self.y=y
         self.L=L
         self.l=l
         self.type=type
         self.nom=nom
+
     def __repr__(self):
         return f"Sprite({self.x},{self.y},{self.L},{self.l},{self.type},{self.nom})"
 
 class Poussoir(Sprite):
-    def __init__(self,x,y,L=50,l=50,type="poussoir.png",typeBis="poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None):
+    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None):
         Sprite.__init__(self,x,y,L,l,type,nom)
         self.clicked=False
         self.on=False
@@ -42,11 +46,12 @@ class Poussoir(Sprite):
         self.arg=arg
         self.func2=func2
         self.arg2=arg2
+
     def __repr__(self):
         return f"Poussoir({self.x},{self.y},{self.type},{self.nom},{self.func})"
 
 class Levier(Sprite):
-    def __init__(self,x,y,L=20,l=37,type="levier.png",typeBis="levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None):
+    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None):
         Sprite.__init__(self,x,y,L,l,type,nom)
         self.clicked=False
         self.on=False
@@ -55,15 +60,18 @@ class Levier(Sprite):
         self.arg=arg
         self.func2=func2
         self.arg2=arg2
+
     def __repr__(self):
         return f"Levier({self.x},{self.y},{self.type},{self.nom},{self.func})"
 
 class Afficheur(Sprite):
-    def __init__(self,x,y,L=56,l=44,type="num.png",nom="bo",valeur=0):
+    def __init__(self,x,y,L=56,l=44,type="img/num.png",nom="bo",valeur=0):
         Sprite.__init__(self,x,y,L,l,type,nom)
         self.valeur=valeur
+
     def change_valeur(self,valeur):
         self.valeur = valeur
+
     def __repr__(self):
         return f"Afficheur({self.x},{self.y},{self.type},{self.valeur},{self.nom})"
         
@@ -155,7 +163,7 @@ pygame.time.set_timer(MY_EVENT, 1000)
 while running:
     i+=1
     ecran.fill(BLANC)
-    BG = pygame.image.load("myimage.jpg")
+    BG = pygame.image.load("img/myimage.jpg")
     BGrect = BG.get_rect()
     ecran.blit(BG, BGrect)
     
