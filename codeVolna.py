@@ -1,5 +1,11 @@
 import pygame
 import sys
+import Unit_Object
+
+
+unit = Unit_Object.Unit
+
+
 """
 différent type de bouton, comme un switch par exemple
 différent type d'affichage (aiguille)
