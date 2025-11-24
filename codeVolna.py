@@ -173,8 +173,12 @@ def panneau(obj):
 
 # --- Boucle principale ---
 i=0
-MY_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(MY_EVENT, 1000)
+PHYSICS_REFRESH = pygame.USEREVENT + 1
+REFRESH = pygame.USEREVENT + 2
+
+pygame.time.set_timer(PHYSICS_REFRESH, 1000)
+pygame.time.set_timer(REFRESH, 500)
+
 while running:
     i+=1
     ecran.fill(BLANC)
@@ -184,10 +188,14 @@ while running:
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT : leave()
-        if event.type == MY_EVENT:
+        if event.type == PHYSICS_REFRESH:
             #ma_fonction()
-            print("Actu")
-            pygame.time.set_timer(MY_EVENT, 1000)
+            unit.refresh()
+            pygame.time.set_timer(PHYSICS_REFRESH, 1000)
+
+        if event.type == REFRESH:
+            unit.fast_refresh()
+            pygame.time.set_timer(REFRESH, 500)
             
     for obj in plan.values():
         box=pygame.Rect(obj.x,obj.y,obj.L,obj.l)

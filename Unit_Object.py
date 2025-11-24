@@ -2,7 +2,7 @@ import Reactor_Object
 
 class Unit:
 
-    def __init__(self, reactor:Reactor_Object.Reactor, turbine=None, condenser=None, deaerator=None):
+    def __init__(self, reactor=Reactor_Object.Reactor, turbine=None, condenser=None, deaerator=None):
         self.reactor = reactor
         self.fwp_1 = pump(1,1)
         self.fwp_2 = pump(1,1)
@@ -13,11 +13,18 @@ class Unit:
 
         self.deaerator = deaerator
 
+
+        self.rods_speed = 0.025
+
     
     """Gestion blogale"""
 
     def refresh(self):
+        #Refresh des système ensuite
         self.reactor.refresh()
+
+    def fast_refresh(self):
+        #Refresh des pompes en premier
         self.fwp_1.refresh()
         self.fwp_2.refresh()
 
@@ -48,6 +55,7 @@ class Unit:
     
 
 class pump:
+    
     def __init__(self, coeff, lag):
         self.setpoint = 0
         self.rpm = 0
