@@ -3,7 +3,7 @@ import sys
 import Unit_Object
 
 
-unit = Unit_Object.Unit
+unit = Unit_Object.Unit()
 
 
 """
@@ -136,7 +136,7 @@ objs = [
     Afficheur(200,200,valeur=0,nom="incr"),
     Afficheur(300,200,valeur="59°C"),
     Levier(400,200),
-    Levier(500,200,func=afficherLst)
+    Levier(500,200,func=unit.raise_rods,arg=rodsLists)
 ]
 
 # --- Plans ---
@@ -174,10 +174,10 @@ def panneau(obj):
 # --- Boucle principale ---
 i=0
 PHYSICS_REFRESH = pygame.USEREVENT + 1
-REFRESH = pygame.USEREVENT + 2
+FAST_REFRESH = pygame.USEREVENT + 2
 
 pygame.time.set_timer(PHYSICS_REFRESH, 1000)
-pygame.time.set_timer(REFRESH, 500)
+pygame.time.set_timer(FAST_REFRESH, 500)
 
 while running:
     i+=1
@@ -193,9 +193,9 @@ while running:
             unit.refresh()
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 
-        if event.type == REFRESH:
+        if event.type == FAST_REFRESH:
             unit.fast_refresh()
-            pygame.time.set_timer(REFRESH, 500)
+            pygame.time.set_timer(FAST_REFRESH, 500)
             
     for obj in plan.values():
         box=pygame.Rect(obj.x,obj.y,obj.L,obj.l)

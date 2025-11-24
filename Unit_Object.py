@@ -2,7 +2,7 @@ import Reactor_Object
 
 class Unit:
 
-    def __init__(self, reactor=Reactor_Object.Reactor, turbine=None, condenser=None, deaerator=None):
+    def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=None, condenser=None, deaerator=None):
         self.reactor = reactor
         self.fwp_1 = pump(1,1)
         self.fwp_2 = pump(1,1)
@@ -30,7 +30,9 @@ class Unit:
 
 
     """Gestion du réacteur"""
-    def raise_rods(self, rods, value):
+    def raise_rods(self, rods):
+        value = self.rods_speed
+
         for i in range(len(rods)):
             if rods[i]:
                 if i<2:
@@ -45,6 +47,8 @@ class Unit:
                     self.reactor.raise_rods(i-18, 4, value)
                 else:
                     self.reactor.raise_rods(i-22, 5, value)
+                
+                print(i)
 
 
     def thermal_power(self):
