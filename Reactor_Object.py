@@ -1,0 +1,255 @@
+# Créé par Eleve, le 06/11/2025 en Python 3.7
+import math
+import random
+from statistics import mean
+
+
+
+def Reactor_Fuel_Assembly(fuel):
+    matrice = []
+    matrice.append([Assembly(fuel) for j in range(2)])
+    matrice.append([Assembly(fuel) for j in range(4)])
+    matrice.append([Assembly(fuel) for j in range(6)])
+    matrice.append([Assembly(fuel) for j in range(6)])
+    matrice.append([Assembly(fuel) for j in range(4)])
+    matrice.append([Assembly(fuel) for j in range(2)])
+
+    return matrice
+
+
+
+
+class Reactor:
+    """
+        Permet de créer un objet réacteur.
+        capable de gérer sa propre physique.
+        capable de produire de la vapeur.
+        possibilité d'y injecter de l'eau.
+        possibilité d'y extraire de la vapeur ainsi que de la préssion.
+    """
+
+    def __init__(self, fuel):
+        #Gestion général du réacteur
+        self.assembly = Reactor_Fuel_Assembly(fuel)
+        self.previews_power = 0.0
+
+        #Gestion de la température
+        self.water_temperature = 30
+        self.heat_per_power = 10
+
+        #Gestion de l'eau
+        self.water_amount = 200
+        self.steam_amount = 0
+        self.temperature_surplus = 0
+        self.boiling_coefficient = 5
+        self.amount_boiled = 0
+        self.pressure = 0
+        self.steam_pressure_coefficient = 5
+        self.saturation_temperature = boiling_point(self.pressure)
+
+        self.level_coefficient = 10
+
+        self.water_density = 1000
+
+    def refresh(self):
+        #Actualise la physique du réacteur
+        self.previews_power = self.power()
+
+        self.water_density = water_density(self.water_temperature)
+
+        Propagation(self.assembly)
+
+        for i in range(len(self.assembly)):
+            for j in range(len(self.assembly[i])):
+                self.assembly[i][j].refresh(self.water_density)
+
+        self.water_temperature += self.power() * self.heat_per_power
+
+        self.__weter_refresh__()
+        
+        return
+
+    def power(self):
+        #Permet de connaitre la puissance thermique du réacteur
+        temp = []
+        for i in self.assembly:
+            for j in i:
+                temp.append(j.get_power())
+        result = mean(temp)
+        return result
+
+    def period(self, time_step):
+        #Permet de connaitre la période du réacteur (son accelération)
+        try:
+            ReactorPeriod = 1 / math.log( self.power() / self.previews_power ) * (1 / time_step)
+        except:
+            return float("inf")
+        if ReactorPeriod > 5000 or ReactorPeriod < -5000:
+            return float("inf")
+        return ReactorPeriod
+    
+    def raise_rods(self, x, y, value):
+        #permet de controler les barres de contrôle de chaque assemblage
+        self.assembly[x][y].raise_rods(value)
+
+    def __debug_raise__(self, amount=100):
+        #Permet de tester la physique du réacteur
+        for i in range(len(self.assembly)):
+            for j in range(len(self.assembly[i])):
+                self.assembly[i][j].rods_pulled = amount
+
+    def temperature(self):
+        #Permet d'avoir la température de l'eau du réacteur
+        return self.water_temperature
+    
+    def water_level(self):
+        #Permet d'avoir le niveau d'eau dans le réacteur
+        level = self.water_amount/self.water_density * self.level_coefficient
+        return level
+    
+    def __weter_refresh__(self):
+        #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
+        if self.water_temperature > self.saturation_temperature:
+            self.temperature_surplus = self.water_temperature - self.saturation_temperature
+            self.amount_boiled = self.temperature_surplus * self.boiling_coefficient
+
+            self.water_temperature = self.saturation_temperature
+
+            self.water_amount -= self.amount_boiled
+            self.steam_amount += self.amount_boiled
+
+            self.pressure = (self.steam_amount * 
+                             self.steam_pressure_coefficient * 
+                             ( self.water_temperature + 273 ) / 373)
+
+            self.saturation_temperature = boiling_point(self.pressure)
+
+
+
+class Assembly():
+    """
+        Permet de créer un assemblage combustible nucléaire.
+        Capable de gérer sa propre physique.
+        Simule une activité neutronique avec des valeurs arbitraire ainsi que des facteurs
+        réglé pour être le plus proche possible de la réalité.
+        Capable de générer de la chaleur.
+    """
+    def __init__(self, fuel):
+        #Gestion arbitraire des neutrons
+        self.max_neutron = 100000000000
+        self.number_of_neutrons = 1000
+        self.idle_neutrons= 1000
+        self.previews_neutrons = 1000
+
+        #Gestion de la puissance/accelération du réacteur
+        self.rods_pulled = 0
+        self.some_factors = 1
+
+        self.fuel = fuel
+
+    def refresh(self, water_density):
+        #Actualise la physique de l'assemblage combustible
+        voidcoefficient =  1 - (0.3 * self.number_of_neutrons / self.max_neutron)
+
+        self.some_factors = (2 * ( 0.2 + self.rods_pulled * 0.8 / 100 ) * 
+                             (water_density / 1000) * 
+                             (self.fuel / 100) * 
+                             voidcoefficient)
+        self.previews_neutrons = self.number_of_neutrons
+        self.number_of_neutrons = self.some_factors * (self.previews_neutrons + self.idle_neutrons)
+
+        return
+
+
+    def get_power(self):
+        #Permet de connaitre la puissance thermique local de l'assemblage
+        power = self.number_of_neutrons / self.max_neutron
+        return power
+
+    def get_period(self, TimeStep):
+        #Permet de connaitre la période local de l'assemblage
+        try:
+            reactor_period = 1 / math.log( self.number_of_neutrons / self.previews_neutrons ) * (1 / TimeStep)
+        except:
+            return float("inf")
+        if reactor_period>5000:
+            return float("inf")
+        return reactor_period
+    
+    def raise_rods(self, value):
+        #Permet de lever la barre de contrôle de l'assemblage
+        if self.rods_pulled + value > 100:
+            self.rods_pulled = 100
+            return
+        self.rods_pulled += value
+
+    def __debug_raise__(self):
+        #Permet de tester la physique
+        self.rods_pulled = 100
+
+    
+
+
+
+def Propagation(matrice:list[list[Assembly]]):
+    #Permet de Gerer la propagation des neutrons entre les différents assemblages
+    neutron_matrice = [[0 for void in range(len(matrice[i]))] for i in range(len(matrice))]
+
+    direct_direction = ((0,1),(1,0),(0,-1),(-1,0))
+    diagonal_direction = ((1,1),(1,-1),(-1,1),(-1,-1))
+
+    for x in range(len(matrice)):
+        for y in range(len(matrice[x])):
+
+            neutrons = matrice[x][y].number_of_neutrons
+            propagation = neutrons/2
+            matrice[x][y].number_of_neutrons -= propagation
+
+            direct_portion = propagation/6
+            diagonal_portion = propagation/12
+
+            neutrons_loss = 0
+
+            for x1,y1 in direct_direction:
+                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1:
+                    neutron_matrice[x+x1][y+y1] += direct_portion
+                else:
+                    neutrons_loss += direct_portion
+
+            for x1,y1 in diagonal_direction:
+                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1:
+                    neutron_matrice[x+x1][y+y1] += diagonal_portion
+                else:
+                    neutrons_loss += diagonal_portion
+
+
+            matrice[x][y].number_of_neutrons += neutrons_loss*0.6
+    
+    for x in range(len(matrice)):
+        for y in range(len(matrice[x])):
+            matrice[x][y].number_of_neutrons += neutron_matrice[x][y]
+
+
+def boiling_point(pressure):
+    #Permet de calculer le point d'ébullition de l'eau à une préssion donnée en hPa
+    pressure*=10000
+    if pressure/10000000>20:
+        pressure=20*10000000
+    temperature =( 1.0002646407033929 * 10**2
+        + 1.2485512687579338 * (10**( -5 )) * pressure
+        - 6.0865396119409739 * (10**( -13 )) * pressure**2
+        + 1.8961630152963698 * (10**( -20 )) * pressure**3
+        - 3.4939669493500672 * (10**( -28 )) * pressure**4
+        + 3.8256436415169860 * (10**( -36 )) * pressure**5
+        - 2.4385640912095220 * (10**( -44 )) * pressure**6
+        + 8.3341353038170792 * (10**( -53 )) * pressure**7
+        - 1.1778965239174813 * (10**( -61 )) * pressure**8 )
+    return temperature
+
+def water_density(temperature):
+    #Permet de calculer la densité de l'eau suivant une température donnée en Kelvin
+    density = (-0.000004467711 * temperature**3
+        -0.000560288485 * temperature**2
+        -0.429148844451 * temperature
+        +1010.035413387815)
+    return density
