@@ -93,10 +93,26 @@ class Afficheur(Sprite):
 pygame.init()
 running = True
 
-# --- Paramètres de la fenêtre ---
-LARGEUR=1920
-HAUTEUR=1080
-ecran = pygame.display.set_mode((LARGEUR,HAUTEUR))
+# --- Résolution virtuelle ---
+VIRTUAL_W = 1920
+VIRTUAL_H = 1080
+
+# Résolution réelle de l'écran
+real_w = pygame.display.Info().current_w
+real_h = pygame.display.Info().current_h
+
+# Facteur de scale
+scale_x = real_w / VIRTUAL_W
+scale_y = real_h / VIRTUAL_H
+scale = min(scale_x, scale_y)
+
+# Surface virtuelle (où tout est dessiné)
+virtual_screen = pygame.Surface((VIRTUAL_W, VIRTUAL_H))
+
+# Fenêtre réelle
+ecran = pygame.display.set_mode((real_w, real_h))
+
+
 pygame.display.set_caption("Projet : VOLNA")
 # --- Police ---
 font = pygame.font.SysFont(None, 36)
@@ -151,7 +167,12 @@ for obj in objs:
 clock = pygame.time.Clock()  # stabilise les FPS
 
 def bouton(obj):
-    souris = pygame.mouse.get_pos()
+    # Adapter la souris à la résolution virtuelle
+    souris = (
+        pygame.mouse.get_pos()[0] / scale,
+        pygame.mouse.get_pos()[1] / scale
+    )
+
     clic = pygame.mouse.get_pressed()[0]
     clicked = obj.clicked
     
@@ -159,17 +180,18 @@ def bouton(obj):
     #type = pygame.image.load(obj.typeBis) if box.collidepoint(souris) or obj.on else pygame.image.load(obj.type)
     # Changement de sprite si est activé
     type = pygame.image.load(obj.typeBis) if obj.on else pygame.image.load(obj.type)
-    ecran.blit(type, box)
+    virtual_screen.blit(type, box)
+
     
     return clic and box.collidepoint(souris) and clicked
 
 def panneau(obj):
     type = pygame.image.load(obj.type)
     #pygame.draw.rect(ecran, couleur, box)
-    ecran.blit(type, box)
+    virtual_screen.blit(type, box)
     texte = font.render(str(obj.valeur), True, NOIR)
     texte_rect = texte.get_rect(center=box.center)
-    ecran.blit(texte, texte_rect)
+    virtual_screen.blit(texte, texte_rect)
 
 # --- Boucle principale ---
 i=0
@@ -181,10 +203,12 @@ pygame.time.set_timer(FAST_REFRESH, 500)
 
 while running:
     i+=1
-    ecran.fill(BLANC)
+    # On dessine dans la surface virtuelle !
+    virtual_screen.fill(BLANC)
+
     BG = pygame.image.load("img/myimage.jpg")
-    BGrect = BG.get_rect()
-    ecran.blit(BG, BGrect)
+    BG = pygame.transform.scale(BG, (VIRTUAL_W, VIRTUAL_H))
+    virtual_screen.blit(BG, (0, 0))
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT : leave()
@@ -210,6 +234,20 @@ while running:
                 obj.on = not obj.on
         if isinstance(obj, Afficheur):
             panneau(obj)
+
+
+    # ---- SCALE FINAL ----
+    scaled_surface = pygame.transform.smoothscale(
+        virtual_screen,
+        (int(VIRTUAL_W * scale), int(VIRTUAL_H * scale))
+    )
+
+    # On efface la fenêtre réelle
+    ecran.fill((0, 0, 0))
+
+    # On dessine la surface virtuelle mise à l'échelle
+    ecran.blit(scaled_surface, (0, 0))
+
                 
 
     pygame.display.update()
