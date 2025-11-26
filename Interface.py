@@ -203,7 +203,7 @@ pygame.time.set_timer(FAST_REFRESH, 500)
 
 while running:
     i+=1
-    # On dessine dans la surface virtuelle !
+    # On dessine dans la surface
     virtual_screen.fill(BLANC)
 
     BG = pygame.image.load("img/myimage.jpg")
@@ -242,7 +242,7 @@ while running:
         (int(VIRTUAL_W * scale), int(VIRTUAL_H * scale))
     )
 
-    # On efface la fenêtre réelle
+    # On efface la fenêtre réelle (pas necessaire à cause du fond d'écran mais on sait jamais)
     ecran.fill((0, 0, 0))
 
     # On dessine la surface virtuelle mise à l'échelle

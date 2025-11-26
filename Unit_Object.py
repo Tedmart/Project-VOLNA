@@ -33,22 +33,24 @@ class Unit:
     def raise_rods(self, rods):
         value = self.rods_speed
 
-        for i in range(len(rods)):
-            if rods[i]:
-                if i<2:
-                    self.reactor.raise_rods(i, 0, value)
-                elif i<6:
-                    self.reactor.raise_rods(i-2, 1, value)
-                elif i<12:
-                    self.reactor.raise_rods(i-6, 2, value)
-                elif i<18:
-                    self.reactor.raise_rods(i-12, 3, value)
-                elif i<22:
-                    self.reactor.raise_rods(i-18, 4, value)
-                else:
-                    self.reactor.raise_rods(i-22, 5, value)
-                
-                print(i)
+        # Définition des tailles de groupes
+        groups = [2, 4, 6, 6, 4, 2]
+
+        # offset = position de départ de chaque groupe dans la liste plate
+        offset = 0
+
+        for g, group_size in enumerate(groups):
+            for pos in range(group_size):
+                flat_index = offset + pos
+
+                if flat_index < len(rods) and rods[flat_index]:
+                    try:
+                        self.reactor.raise_rods(g, pos, value)
+                    except IndexError:
+                        print(f"position = {flat_index}, groupe = {g}, pos = {pos}, erreur = {IndexError}")
+
+            offset += group_size
+
 
 
     def thermal_power(self):
