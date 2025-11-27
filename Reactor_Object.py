@@ -1,4 +1,4 @@
-# Créé par Eleve, le 06/11/2025 en Python 3.7
+
 import math
 import random
 from statistics import mean

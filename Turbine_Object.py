@@ -1,8 +1,15 @@
 
 # URSS's Grid Frequency = 50Hz
-# Turbine rmp goal for 50Hz = 1500
+# Turbine rpm goal for 50Hz = 1500
+
 
 class Turbine:
+    """
+        Permet de créer une turbine
+        capable de gérer sa propre physique
+        capable de modifier ses valve (bypass/contournement et valve principal)
+        possède deux mode, mode libre (0) et mode synchronisé (1)
+    """
     def __init__(self):
         self.settings = 100
         self.steam_coeff = 1
@@ -21,7 +28,7 @@ class Turbine:
         self.steam = self.settings * self.steam_coeff * pressure
         return self.steam
     
-    def valve_off(self):
+    def valve_close(self):
         self.valve_on = False
         self.valve = 0
     
@@ -32,7 +39,7 @@ class Turbine:
         if self.vale_on:
             self.valve += value
     
-    def bypass_off(self):
+    def bypass_close(self):
         self.bypass_on = False
         self.bypass = 0
     
@@ -42,3 +49,5 @@ class Turbine:
     def bypass_setpoint(self, value):
         if self.bypass_on:
             self.bypass += value
+
+
