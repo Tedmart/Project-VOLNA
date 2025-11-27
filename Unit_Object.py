@@ -1,8 +1,10 @@
 import Reactor_Object
+import Turbine_Object
 
 class Unit:
 
-    def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=None, condenser=None, deaerator=None):
+    def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=Turbine_Object.Turbine(), condenser=None, deaerator=None):
+        #Partie réacteur et son alimentation
         self.reactor = reactor
         self.fwp_1 = pump(1,1)
         self.fwp_2 = pump(1,1)
@@ -17,7 +19,7 @@ class Unit:
         self.rods_speed = 0.025
 
     
-    """Gestion blogale"""
+    """Gestion globale"""
 
     def refresh(self):
         #Refresh des système ensuite

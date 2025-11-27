@@ -107,6 +107,12 @@ class Reactor:
         level = self.water_amount/self.water_density * self.level_coefficient
         return level
     
+    def add_water(self, amount):
+        self.water_amount += amount
+
+    def remove_steam(self, amount):
+        self.steam_amount -= amount
+    
     def __weter_refresh__(self):
         #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
         if self.water_temperature > self.saturation_temperature:
