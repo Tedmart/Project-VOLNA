@@ -161,7 +161,7 @@ objs = [
 
 # --- Plans ---
 plan = {}
-i=0
+i=0 
 for obj in objs:
     i+=1
     nom = obj.nom if obj.nom != "bo" else str(i)
