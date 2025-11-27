@@ -50,7 +50,7 @@ class Sprite:
         return f"Sprite({self.x},{self.y},{self.L},{self.l},{self.type},{self.nom})"
 
 class Poussoir(Sprite):
-    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None):
+    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None,liens=[]):
         Sprite.__init__(self,x,y,L,l,type,nom)
         self.clicked=False
         self.on=False
@@ -59,21 +59,19 @@ class Poussoir(Sprite):
         self.arg=arg
         self.func2=func2
         self.arg2=arg2
+        self.liens=liens
 
     def __repr__(self):
         return f"Poussoir({self.x},{self.y},{self.type},{self.nom},{self.func})"
 
-class Levier(Sprite):
-    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None):
-        Sprite.__init__(self,x,y,L,l,type,nom)
-        self.clicked=False
-        self.on=False
-        self.typeBis=typeBis
-        self.func=func
-        self.arg=arg
-        self.func2=func2
-        self.arg2=arg2
+    def switch(self):
+        self.on = not self.on
+        self.func2(self.arg2)
 
+class Levier(Poussoir):
+    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None,liens=[]):
+        Poussoir.__init__(self,x,y,L,l,type,typeBis,nom,func,arg,func2,arg2,liens)
+        
     def __repr__(self):
         return f"Levier({self.x},{self.y},{self.type},{self.nom},{self.func})"
 
@@ -152,7 +150,10 @@ objs = [
     Afficheur(200,200,valeur=0,nom="incr"),
     Afficheur(300,200,valeur="59°C"),
     Levier(400,200),
-    Levier(500,200,func=unit.raise_rods,arg=rodsLists)
+    Levier(500,200,func=unit.raise_rods,arg=rodsLists),
+
+    Poussoir(700,600,nom="lever bars",func=nothing,func2=nothing,liens=["baisser bars"]),
+    Poussoir(700,700,nom="baisser bars",func=nothing,func2=leave,liens=["lever bars"])
 ]
 
 # --- Plans ---
@@ -182,6 +183,11 @@ def bouton(obj):
     type = pygame.image.load(obj.typeBis) if obj.on else pygame.image.load(obj.type)
     virtual_screen.blit(type, box)
 
+    if clic and box.collidepoint(souris) and clicked:
+        for lien in obj.liens:
+            btn = plan[lien]
+            if not obj.on and btn.on:
+                btn.switch()
     
     return clic and box.collidepoint(souris) and clicked
 
