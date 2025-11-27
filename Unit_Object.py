@@ -24,6 +24,8 @@ class Unit:
     def refresh(self):
         #Refresh des système ensuite
         self.reactor.refresh()
+        pressure = self.reactor.pressure
+        self.reactor.remove_steam(self.turbine.refresh(pressure))
 
     def fast_refresh(self):
         #Refresh des pompes en premier
