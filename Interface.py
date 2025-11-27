@@ -50,30 +50,31 @@ class Sprite:
         return f"Sprite({self.x},{self.y},{self.L},{self.l},{self.type},{self.nom})"
 
 class Poussoir(Sprite):
-    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None,liens=[]):
+    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None,on=False,verr=False,liens=[]):
         Sprite.__init__(self,x,y,L,l,type,nom)
         self.clicked=False
-        self.on=False
+        self.on=on
         self.typeBis=typeBis
         self.func=func
         self.arg=arg
         self.func2=func2
         self.arg2=arg2
         self.liens=liens
+        self.verr=verr
 
     def __repr__(self):
-        return f"Poussoir({self.x},{self.y},{self.type},{self.nom},{self.func})"
+        return f"Poussoir({self.x},{self.y},{self.type},{self.nom},{self.func},{self.liens})"
 
     def switch(self):
         self.on = not self.on
         self.func2(self.arg2)
 
 class Levier(Poussoir):
-    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None,liens=[]):
-        Poussoir.__init__(self,x,y,L,l,type,typeBis,nom,func,arg,func2,arg2,liens)
+    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None,on=False,verr=False,liens=[]):
+        Poussoir.__init__(self,x,y,L,l,type,typeBis,nom,func,arg,func2,arg2,on,verr,liens)
         
     def __repr__(self):
-        return f"Levier({self.x},{self.y},{self.type},{self.nom},{self.func})"
+        return f"Levier({self.x},{self.y},{self.type},{self.nom},{self.func},{self.liens})"
 
 class Afficheur(Sprite):
     def __init__(self,x,y,L=56,l=44,type="img/num.png",nom="bo",valeur=0):
@@ -152,8 +153,10 @@ objs = [
     Levier(400,200),
     Levier(500,200,func=unit.raise_rods,arg=rodsLists),
 
-    Poussoir(700,600,nom="lever bars",func=nothing,func2=nothing,liens=["baisser bars"]),
-    Poussoir(700,700,nom="baisser bars",func=nothing,func2=leave,liens=["lever bars"])
+    Poussoir(700,550,nom="lever bars",func=nothing,func2=nothing,verr=True,liens=["baisser bars","stopper bars"]),
+    Poussoir(700,650,nom="stopper bars",func=nothing,func2=nothing,on=True,verr=True,liens=["lever bars","baisser bars"]),
+    Poussoir(700,750,nom="baisser bars",func=nothing,func2=leave,verr=True,liens=["lever bars","stopper bars"])
+
 ]
 
 # --- Plans ---
@@ -188,7 +191,8 @@ def bouton(obj):
             btn = plan[lien]
             if not obj.on and btn.on:
                 btn.switch()
-    
+    if obj.on and obj.verr:
+        return False
     return clic and box.collidepoint(souris) and clicked
 
 def panneau(obj):
