@@ -38,9 +38,8 @@ class Reactor:
         self.heat_per_power = 10
 
         #Gestion de l'eau
-        self.water_amount = 200
+        self.water_amount = 5000
         self.steam_amount = 0
-        self.temperature_surplus = 0
         self.boiling_coefficient = 5
         self.amount_boiled = 0
         self.pressure = 0
@@ -116,8 +115,8 @@ class Reactor:
     def __weter_refresh__(self):
         #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
         if self.water_temperature > self.saturation_temperature:
-            self.temperature_surplus = self.water_temperature - self.saturation_temperature
-            self.amount_boiled = self.temperature_surplus * self.boiling_coefficient
+            temperature_surplus = self.water_temperature - self.saturation_temperature
+            self.amount_boiled = temperature_surplus * self.boiling_coefficient
 
             self.water_temperature = self.saturation_temperature
 

@@ -11,22 +11,34 @@ class Turbine:
         possède deux mode, mode libre (0) et mode synchronisé (1)
     """
     def __init__(self):
-        self.settings = 100
-        self.steam_coeff = 1
-        self.steam = 0
         self.mode = 0
 
+        # Etat de l'activation de la valve principal et de la valve de contournement
         self.vale_on = False
         self.bypass_on = False
 
+        # Position de la valve principal et de la valve de contournement
         self.valve = 0
         self.bypass = 0
+
+        # Coeffs : ajustables selon ton modèle
+        self.turbine_coeff = 1.0
+        self.bypass_coeff = 0.5   # plus faible que la turbine
 
         self.relief = False
 
     def refresh(self, pressure):
-        self.steam = self.settings * self.steam_coeff * pressure
-        return self.steam
+        # Conversion % → fraction
+        valve_frac = self.valve / 100
+        bypass_frac = self.bypass / 100
+
+        # Calcul vapeur
+        turbine_steam = valve_frac  * self.turbine_coeff * pressure
+        bypass_steam  = bypass_frac * self.bypass_coeff * pressure
+
+        total_out = turbine_steam + bypass_steam
+
+        return total_out
     
     def valve_close(self):
         self.valve_on = False
@@ -51,3 +63,7 @@ class Turbine:
             self.bypass += value
 
 
+
+turbine = Turbine()
+
+turbine.refresh(7100)

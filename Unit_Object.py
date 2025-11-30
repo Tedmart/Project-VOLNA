@@ -6,8 +6,8 @@ class Unit:
     def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=Turbine_Object.Turbine(), condenser=None, deaerator=None):
         #Partie réacteur et son alimentation
         self.reactor = reactor
-        self.fwp_1 = pump(1,1)
-        self.fwp_2 = pump(1,1)
+        self.fwp_1 = pump()
+        self.fwp_2 = pump()
 
         self.turbine = turbine
 
@@ -90,7 +90,7 @@ class Unit:
 
 class pump:
     
-    def __init__(self, coeff, lag):
+    def __init__(self, coeff=1, lag=1):
         self.setpoint = 0
         self.rpm = 0
         self.flow = 0
