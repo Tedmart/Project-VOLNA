@@ -21,12 +21,19 @@ NOIR = (0, 0, 0)
 ROUGE = (255,0,0)
 GOLD = (255,215,0)
 BLEU = (0,0,255)
+
 i=0
 rodsLists = [False for i in range(24)]
+rods_state = 0
+
 def leave(a=None):
     running = False
     pygame.quit()
     sys.exit()
+
+def barres(a):
+    global rods_state
+    rods_state = a
 
 def incr(a):
     plan["incr"].change_valeur(a)
@@ -120,7 +127,7 @@ pygame.display.set_caption("Projet : VOLNA")
 font = pygame.font.SysFont(None, 36)
 # --- Sprites ---
 
-objs = objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave)
+objs = objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave, barres)
 
 # --- Plans ---
 plan = {}
@@ -188,9 +195,15 @@ while running:
         if event.type == PHYSICS_REFRESH:
             #ma_fonction()
             unit.refresh()
+            plan["temp"].change_valeur(f"{round(unit.temperature(), 0)}°C")
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 
         if event.type == FAST_REFRESH:
+            if rods_state == 1:
+                unit.raise_rods(rodsLists)
+            elif rods_state == -1:
+                unit.lower_rods(rodsLists)
+            plan["incr"].change_valeur(f"{round(unit.reactor.assembly[0][0].rods_pulled, 3)}")
             unit.fast_refresh()
             pygame.time.set_timer(FAST_REFRESH, 500)
             

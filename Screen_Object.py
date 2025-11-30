@@ -1,5 +1,5 @@
 
-def objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave):
+def objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave, barres):
     objs = [
         
         Poussoir(200,400,func=antoine,arg=1,func2=antoine,arg2=1),
@@ -32,14 +32,14 @@ def objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leav
         Poussoir(200,900,func=antoine,arg=23,func2=antoine,arg2=23),
         Poussoir(300,900,func=antoine,arg=24,func2=antoine,arg2=24),
         
-        Afficheur(200,200,valeur=0,nom="incr"),
-        Afficheur(300,200,valeur="59°C"),
+        Afficheur(200,200,valeur="",nom="incr"),
+        Afficheur(300,200,valeur="30°C", nom="temp"),
         Levier(400,200),
         Levier(500,200,func=unit.raise_rods,arg=rodsLists),
 
-        Poussoir(700,550,nom="lever bars",func=nothing,func2=nothing,verr=True,liens=["baisser bars","stopper bars"]),
-        Poussoir(700,650,nom="stopper bars",func=nothing,func2=nothing,on=True,verr=True,liens=["lever bars","baisser bars"]),
-        Poussoir(700,750,nom="baisser bars",func=nothing,func2=leave,verr=True,liens=["lever bars","stopper bars"])
+        Poussoir(700,550,nom="lever bars",func=barres,arg=1,verr=True,liens=["baisser bars","stopper bars"]),
+        Poussoir(700,650,nom="stopper bars",func=barres,arg=0,on=True,verr=True,liens=["lever bars","baisser bars"]),
+        Poussoir(700,750,nom="baisser bars",func=barres,arg=-1,verr=True,liens=["lever bars","stopper bars"])
 
     ]
     return objs

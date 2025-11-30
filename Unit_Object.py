@@ -55,6 +55,27 @@ class Unit:
 
             offset += group_size
 
+    def lower_rods(self, rods):
+        value = -self.rods_speed
+
+        # Définition des tailles de groupes
+        groups = [2, 4, 6, 6, 4, 2]
+
+        # offset = position de départ de chaque groupe dans la liste plate
+        offset = 0
+
+        for g, group_size in enumerate(groups):
+            for pos in range(group_size):
+                flat_index = offset + pos
+
+                if flat_index < len(rods) and rods[flat_index]:
+                    try:
+                        self.reactor.raise_rods(g, pos, value)
+                    except IndexError:
+                        print(f"position = {flat_index}, groupe = {g}, pos = {pos}, erreur = {IndexError}")
+
+            offset += group_size
+
 
 
     def thermal_power(self):
@@ -62,6 +83,9 @@ class Unit:
     
     def period(self):
         return self.reactor.period()
+    
+    def temperature(self):
+        return self.reactor.temperature()
     
 
 class pump:
