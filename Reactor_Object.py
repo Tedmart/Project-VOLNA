@@ -184,7 +184,10 @@ class Assembly():
     def raise_rods(self, value):
         #Permet de lever la barre de contrôle de l'assemblage
         if self.rods_pulled + value > 100:
-            self.rods_pulled = 100
+            self.rods_pulled = 100.
+            return
+        if self.rods_pulled + value < 0:
+            self.rods_pulled = 0.
             return
         self.rods_pulled += value
 
