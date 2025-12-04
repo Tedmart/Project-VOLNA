@@ -4,8 +4,6 @@ import Unit_Object
 from Screen_Object import objects
 
 
-
-
 unit = Unit_Object.Unit()
 
 
@@ -96,8 +94,20 @@ class Afficheur(Sprite):
 
     def __repr__(self):
         return f"Afficheur({self.x},{self.y},{self.type},{self.valeur},{self.nom})"
-        
 
+class Jauge(Afficheur):
+    def __init__(self,x,y,L=70,l=49,type="img/cadrant.png",nom="bo",valeur=0,MAX=10):
+        Afficheur.__init__(self,x,y,L,l,type,nom,valeur)
+        self.MAX=MAX
+        deg = 0
+        self.deg=deg
+    def change_valeur(self,valeur):
+        self.valeur = valeur
+        MAX = self.MAX
+        valeur = valeur%MAX
+        self.deg=int(round((valeur/MAX)*180,0))
+        print(self.deg)
+        
 # --- Initialisation ---
 pygame.init()
 running = True
@@ -127,7 +137,7 @@ pygame.display.set_caption("Projet : VOLNA")
 font = pygame.font.SysFont(None, 36)
 # --- Sprites ---
 
-objs = objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave, barres)
+objs = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres)
 
 # --- Plans ---
 plan = {}
@@ -169,9 +179,17 @@ def panneau(obj):
     type = pygame.image.load(obj.type)
     #pygame.draw.rect(ecran, couleur, box)
     virtual_screen.blit(type, box)
-    texte = font.render(str(obj.valeur), True, NOIR)
-    texte_rect = texte.get_rect(center=box.center)
-    virtual_screen.blit(texte, texte_rect)
+    if isinstance(obj,Jauge):
+        img = "img/aiguille.png"
+        l = 70
+        L = 10
+        aig = pygame.transform.rotate(pygame.image.load(img), -obj.deg)
+        new_rect = aig.get_rect(center = aig.get_rect(center = (obj.x+(obj.L/2), obj.y+obj.l-L)).center)
+        virtual_screen.blit(aig, new_rect)
+    else:
+        texte = font.render(str(obj.valeur), True, NOIR)
+        texte_rect = texte.get_rect(center=box.center)
+        virtual_screen.blit(texte, texte_rect)
 
 # --- Boucle principale ---
 i=0
@@ -182,6 +200,8 @@ pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 pygame.time.set_timer(FAST_REFRESH, 500)
 
 while running:
+    plan["jauge"].change_valeur(i)
+    plan["voila"].change_valeur(1)
     i+=1
     # On dessine dans la surface
     virtual_screen.fill(BLANC)

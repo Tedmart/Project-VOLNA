@@ -1,5 +1,5 @@
 
-def objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leave, barres):
+def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres):
     objs = [
         
         Poussoir(200,400,func=antoine,arg=1,func2=antoine,arg2=1),
@@ -39,7 +39,9 @@ def objects(Poussoir, Afficheur, antoine, Levier, unit, rodsLists, nothing, leav
 
         Poussoir(700,550,nom="lever bars",func=barres,arg=1,verr=True,liens=["baisser bars","stopper bars"]),
         Poussoir(700,650,nom="stopper bars",func=barres,arg=0,on=True,verr=True,liens=["lever bars","baisser bars"]),
-        Poussoir(700,750,nom="baisser bars",func=barres,arg=-1,verr=True,liens=["lever bars","stopper bars"])
+        Poussoir(700,750,nom="baisser bars",func=barres,arg=-1,verr=True,liens=["lever bars","stopper bars"]),
 
+        Jauge(800,650,nom="jauge",MAX=50),
+        Jauge(900,650,nom="voila",MAX=4)
     ]
     return objs
