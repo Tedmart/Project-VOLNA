@@ -11,6 +11,7 @@ class Turbine:
         possède deux mode, mode libre (0) et mode synchronisé (1)
     """
     def __init__(self):
+        # Rotation libre (0) ou Rotation synchronisée (1)
         self.mode = 0
 
         # Etat de l'activation de la valve principal et de la valve de contournement
@@ -21,11 +22,13 @@ class Turbine:
         self.valve = 0
         self.bypass = 0
 
-        # Coeffs : ajustables selon ton modèle
+        # Coefficient d'ouverture -- à ajuster
         self.turbine_coeff = 1.0
-        self.bypass_coeff = 0.5   # plus faible que la turbine
+        self.bypass_coeff = 0.5
 
+        # Valve d'urgence pour drainer la pression de la vapeur
         self.relief = False
+        self.relief_coeff = 1.5
 
     def refresh(self, pressure):
         # Conversion % → fraction
