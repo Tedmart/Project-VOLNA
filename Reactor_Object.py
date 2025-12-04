@@ -17,8 +17,6 @@ def Reactor_Fuel_Assembly(fuel):
     return matrice
 
 
-
-
 class Reactor:
     """
         Permet de créer un objet réacteur.
@@ -28,7 +26,7 @@ class Reactor:
         possibilité d'y extraire de la vapeur ainsi que de la préssion.
     """
 
-    def __init__(self, fuel):
+    def __init__(self, fuel=100):
         #Gestion général du réacteur
         self.assembly = Reactor_Fuel_Assembly(fuel)
         self.previews_power = 0.0
@@ -106,8 +104,11 @@ class Reactor:
         level = self.water_amount/self.water_density * self.level_coefficient
         return level
     
-    def add_water(self, amount):
-        self.water_amount += amount
+    def add_water(self, pump, feedwater_temperature):
+        MIXING_COEFF = 0.1
+        self.water_temperature = (( self.water_temperature + pump.flow * feedwater_temperature * MIXING_COEFF ) / 
+                                  ( 1 + pump.flow * MIXING_COEFF ))
+        self.water_amount += pump.flow
 
     def remove_steam(self, amount):
         self.steam_amount -= amount
@@ -157,7 +158,7 @@ class Assembly():
         voidcoefficient =  1 - (0.3 * self.number_of_neutrons / self.max_neutron)
 
         self.some_factors = (2 * ( 0.2 + self.rods_pulled * 0.8 / 100 ) * 
-                             (water_density / 1000) * 
+                             (water_density / 1000) ** 0.1 * 
                              (self.fuel / 100) * 
                              voidcoefficient)
         self.previews_neutrons = self.number_of_neutrons

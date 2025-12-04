@@ -9,10 +9,13 @@ class Unit:
         self.fwp_1 = pump()
         self.fwp_2 = pump()
 
+        #Partie turbine
         self.turbine = turbine
 
+        #Partie condensateur
         self.condenser = condenser
 
+        #Partie désaérateur
         self.deaerator = deaerator
 
 
@@ -22,13 +25,14 @@ class Unit:
     """Gestion globale"""
 
     def refresh(self):
-        #Refresh des système ensuite
         self.reactor.refresh()
+        self.reactor.add_water(self.fwp_1, 100)
+        self.reactor.add_water(self.fwp_2, 30)
         pressure = self.reactor.pressure
         self.reactor.remove_steam(self.turbine.refresh(pressure))
 
+
     def fast_refresh(self):
-        #Refresh des pompes en premier
         self.fwp_1.refresh()
         self.fwp_2.refresh()
 
@@ -82,10 +86,26 @@ class Unit:
         return self.reactor.power()
     
     def period(self):
-        return self.reactor.period()
+        return self.reactor.period(1)
     
     def temperature(self):
         return self.reactor.temperature()
+    
+    def __debug_raise__(self, amount=100):
+        self.reactor.__debug_raise__(amount)
+
+    def feed_pump1_set(self, value):
+        self.fwp_1.set_point(value)
+
+    def feed_pump2_set(self, value):
+        self.fwp_2.set_point(value)
+
+    # Gestion turbine
+    def main_valve(self, open):
+        self.turbine.valve_open(self.reactor.pressure)
+
+    def set_valve(self, amount):
+        self.turbine.valve_setpoint(amount)
     
 
 class pump:
@@ -101,5 +121,5 @@ class pump:
         self.rpm = self.rpm + ( self.setpoint - self.rpm ) / self.lag
         self.flow = self.rpm * self.rpm_to_flow_coeff
 
-    def set_point_add(self, value):
-        self.setpoint += value
+    def set_point(self, value):
+        self.setpoint = value

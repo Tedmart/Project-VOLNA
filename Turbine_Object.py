@@ -40,6 +40,7 @@ class Turbine:
         bypass_steam  = bypass_frac * self.bypass_coeff * pressure
 
         total_out = turbine_steam + bypass_steam
+        print(total_out)
 
         return total_out
     
@@ -47,12 +48,14 @@ class Turbine:
         self.valve_on = False
         self.valve = 0
     
-    def valve_open(self):
+    def valve_open(self, pressure):
+        if pressure < 5000:
+            return
         self.valve_on = True
 
     def valve_setpoint(self, value):
         if self.vale_on:
-            self.valve += value
+            self.valve = value
     
     def bypass_close(self):
         self.bypass_on = False
