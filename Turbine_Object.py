@@ -15,7 +15,7 @@ class Turbine:
         self.mode = 0
 
         # Etat de l'activation de la valve principal et de la valve de contournement
-        self.vale_on = False
+        self.valve_on = False
         self.bypass_on = False
 
         # Position de la valve principal et de la valve de contournement
@@ -54,7 +54,7 @@ class Turbine:
         self.valve_on = True
 
     def valve_setpoint(self, value):
-        if self.vale_on:
+        if self.valve_on:
             self.valve = value
     
     def bypass_close(self):

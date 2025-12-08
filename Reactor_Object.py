@@ -105,7 +105,7 @@ class Reactor:
         return level
     
     def add_water(self, pump, feedwater_temperature):
-        MIXING_COEFF = 0.1
+        MIXING_COEFF = 0.01
         self.water_temperature = (( self.water_temperature + pump.flow * feedwater_temperature * MIXING_COEFF ) / 
                                   ( 1 + pump.flow * MIXING_COEFF ))
         self.water_amount += pump.flow

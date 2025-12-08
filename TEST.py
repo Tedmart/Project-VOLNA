@@ -11,8 +11,7 @@ turbine.valve_open(7100)
 turbine.valve_setpoint(40)
 turbine.refresh(pressure=7100)
 
-
-while False:
+while True:
     print(f"Power : {unit.thermal_power() * 100}")
     print(f"Period : {unit.period()}")
     print(f"Pressure : {unit.reactor.pressure}")

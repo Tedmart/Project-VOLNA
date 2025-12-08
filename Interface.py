@@ -201,7 +201,6 @@ pygame.time.set_timer(FAST_REFRESH, 500)
 
 while running:
     plan["jauge"].change_valeur(i)
-    plan["voila"].change_valeur(1)
     i+=1
     # On dessine dans la surface
     virtual_screen.fill(BLANC)
@@ -224,6 +223,7 @@ while running:
             elif rods_state == -1:
                 unit.lower_rods(rodsLists)
             plan["incr"].change_valeur(f"{round(unit.reactor.assembly[0][0].rods_pulled, 3)}")
+            plan["voila"].change_valeur(unit.reactor.assembly[0][0].rods_pulled)
             unit.fast_refresh()
             pygame.time.set_timer(FAST_REFRESH, 500)
             

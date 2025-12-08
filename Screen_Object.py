@@ -41,7 +41,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothin
         Poussoir(700,650,nom="stopper bars",func=barres,arg=0,on=True,verr=True,liens=["lever bars","baisser bars"]),
         Poussoir(700,750,nom="baisser bars",func=barres,arg=-1,verr=True,liens=["lever bars","stopper bars"]),
 
-        Jauge(800,650,nom="jauge",MAX=50),
-        Jauge(900,650,nom="voila",MAX=4)
+        Jauge(800,650,nom="jauge",MAX=10),
+        Jauge(900,650,nom="voila",MAX=1)
     ]
     return objs
