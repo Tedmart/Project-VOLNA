@@ -1,6 +1,5 @@
 
 import math
-import random
 from statistics import mean
 
 
@@ -41,7 +40,7 @@ class Reactor:
         self.boiling_coefficient = 5
         self.amount_boiled = 0
         self.pressure = 0
-        self.steam_pressure_coefficient = 5
+        self.steam_pressure_coefficient = 3.1
         self.saturation_temperature = boiling_point(self.pressure)
 
         self.level_coefficient = 10
@@ -108,7 +107,7 @@ class Reactor:
         MIXING_COEFF = 0.01
         self.water_temperature = (( self.water_temperature + pump.flow * feedwater_temperature * MIXING_COEFF ) / 
                                   ( 1 + pump.flow * MIXING_COEFF ))
-        self.water_amount += pump.flow
+        self.water_amount += int(pump.flow)
 
     def remove_steam(self, amount):
         self.steam_amount -= amount
@@ -117,7 +116,7 @@ class Reactor:
         #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
         if self.water_temperature > self.saturation_temperature:
             temperature_surplus = self.water_temperature - self.saturation_temperature
-            self.amount_boiled = temperature_surplus * self.boiling_coefficient
+            self.amount_boiled = int(temperature_surplus * self.boiling_coefficient)
 
             self.water_temperature = self.saturation_temperature
 

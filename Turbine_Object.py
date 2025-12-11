@@ -1,6 +1,6 @@
 
 # URSS's Grid Frequency = 50Hz
-# Turbine rpm goal for 50Hz = 1500
+# Turbine rpm goal for 50Hz = 1500 rpm
 
 
 class Turbine:
@@ -24,7 +24,7 @@ class Turbine:
 
         # Coefficient d'ouverture -- à ajuster
         self.turbine_coeff = 1.0
-        self.bypass_coeff = 0.5
+        self.bypass_coeff = 0.2
 
         # Valve d'urgence pour drainer la pression de la vapeur
         self.relief = False
@@ -39,7 +39,7 @@ class Turbine:
         turbine_steam = valve_frac  * self.turbine_coeff * pressure
         bypass_steam  = bypass_frac * self.bypass_coeff * pressure
 
-        total_out = turbine_steam + bypass_steam
+        total_out = int(turbine_steam + bypass_steam)
         print(total_out)
 
         return total_out
@@ -66,7 +66,7 @@ class Turbine:
     
     def bypass_setpoint(self, value):
         if self.bypass_on:
-            self.bypass += value
+            self.bypass = value
 
 
 

@@ -25,11 +25,17 @@ class Unit:
     """Gestion globale"""
 
     def refresh(self):
-        self.reactor.refresh()
+        
         self.reactor.add_water(self.fwp_1, 100)
         self.reactor.add_water(self.fwp_2, 30)
+
         pressure = self.reactor.pressure
-        self.reactor.remove_steam(self.turbine.refresh(pressure))
+
+        steam_to_remove = self.turbine.refresh(pressure)
+
+        self.reactor.remove_steam(steam_to_remove)
+
+        self.reactor.refresh()
 
 
     def fast_refresh(self):
@@ -102,10 +108,22 @@ class Unit:
 
     # Gestion turbine
     def main_valve(self, open):
-        self.turbine.valve_open(self.reactor.pressure)
+        if open:
+            self.turbine.valve_open()
+        else:
+            self.turbine.valve_close()
 
     def set_valve(self, amount):
         self.turbine.valve_setpoint(amount)
+
+    def bypass_valve(self, open):
+        if open:
+            self.turbine.bypass_open()
+        else:
+            self.turbine.bypass_close()
+
+    def set_bypass(self, amount):
+        self.turbine.bypass_setpoint(amount)
     
 
 class pump:
