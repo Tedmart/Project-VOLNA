@@ -45,6 +45,18 @@ def antoine(a=None):
 def afficherLst(a=None):
     print(rodsLists)
 
+def changeBg(arg):
+    global GLOBALplan
+    global plan
+    global bg
+    bg = arg
+    try:
+        GLOBALplan[bg]
+    except:
+        GLOBALplan[bg] = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg)
+    plan = GLOBALplan[bg]
+
+
 class Sprite:
     def __init__(self,x,y,L=40,l=20,type="img/type.png",nom="bo"):
         self.x=x
@@ -135,17 +147,11 @@ ecran = pygame.display.set_mode((real_w, real_h))
 pygame.display.set_caption("Projet : VOLNA")
 # --- Police ---
 font = pygame.font.SysFont(None, 36)
-# --- Sprites ---
-
-objs = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres)
-
-# --- Plans ---
-plan = {}
-i=0 
-for obj in objs:
-    i+=1
-    nom = obj.nom if obj.nom != "bo" else str(i)
-    plan[nom]=obj
+# --- Plan ---
+bg = 0
+GLOBALplan = {}
+GLOBALplan[bg] = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg)
+plan = GLOBALplan[bg]
 
 
 clock = pygame.time.Clock()  # stabilise les FPS
@@ -212,18 +218,19 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT : leave()
         if event.type == PHYSICS_REFRESH:
-            #ma_fonction()
+            if bg == 0:
+                plan["temp"].change_valeur(f"{round(unit.temperature(), 0)}°C")
             unit.refresh()
-            plan["temp"].change_valeur(f"{round(unit.temperature(), 0)}°C")
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 
         if event.type == FAST_REFRESH:
-            if rods_state == 1:
-                unit.raise_rods(rodsLists)
-            elif rods_state == -1:
-                unit.lower_rods(rodsLists)
-            plan["incr"].change_valeur(f"{round(unit.reactor.assembly[0][0].rods_pulled, 3)}")
-            plan["voila"].change_valeur(unit.reactor.assembly[0][0].rods_pulled)
+            if bg == 0:
+                if rods_state == 1:
+                    unit.raise_rods(rodsLists)
+                elif rods_state == -1:
+                    unit.lower_rods(rodsLists)
+                plan["incr"].change_valeur(f"{round(unit.reactor.assembly[0][0].rods_pulled, 3)}")
+                plan["voila"].change_valeur(unit.reactor.assembly[0][0].rods_pulled)
             unit.fast_refresh()
             pygame.time.set_timer(FAST_REFRESH, 500)
             

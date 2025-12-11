@@ -1,5 +1,5 @@
 
-def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres):
+def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg):
     objs = [
         
         Poussoir(200,400,func=antoine,arg=1,func2=antoine,arg2=1),
@@ -42,6 +42,30 @@ def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothin
         Poussoir(700,750,nom="baisser bars",func=barres,arg=-1,verr=True,liens=["lever bars","stopper bars"]),
 
         Jauge(800,650,nom="jauge",MAX=10),
-        Jauge(900,650,nom="voila",MAX=1)
+        Jauge(900,650,nom="voila",MAX=1),
+
+        Poussoir(1000,600,nom="next",func=changeBg,arg=bg+1)
     ]
-    return objs
+
+    objs2 = [
+        Jauge(1200,150,nom="jauge",MAX=10),
+
+        Poussoir(1000,600,nom="back",func=changeBg,arg=bg-1),
+    ]
+
+    o = []
+    plan = {}
+
+    if bg == 0:
+        o = objs
+    elif bg == 1:
+        o = objs2
+
+    i=0
+    for obj in o:
+        i+=1
+        nom = obj.nom if obj.nom != "bo" else str(i)
+        plan[nom]=obj
+
+    return plan
+
