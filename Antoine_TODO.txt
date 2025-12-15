@@ -1,0 +1,29 @@
+Reacteur:
+    - gestion de la température de l'eau d'alimentation
+
+    -Gestion des vérification:
+        - alimentation éléctrique pour les systemes
+
+
+Turbine:
+    - Gestion plus précise de la vapeur et de la préssion
+    - Gestion de la rotation de la turbine:
+        commencer par free-spin
+        puis sync-spin
+    
+    -Gestion des vérification:
+        - pression suffisante pour valve principale
+        - charge suffisante pour maintenair la synchronisation
+        - alimentation éléctrique pour les systemes
+        
+
+Condensateur:
+    TODO
+
+
+Panneau éléctrique:
+    TODO (très important pour l'immersion et le réalisme)
+
+
+Désaérateur:
+    TODO (en dernier ca c'est pas utile)
