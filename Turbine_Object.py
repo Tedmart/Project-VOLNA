@@ -24,7 +24,7 @@ class Turbine:
 
         # Coefficient d'ouverture -- à ajuster
         self.turbine_coeff = 1.0
-        self.bypass_coeff = 0.2
+        self.bypass_coeff = 0.1
 
         # Valve d'urgence pour drainer la pression de la vapeur
         self.relief = False

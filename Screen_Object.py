@@ -61,9 +61,8 @@ def objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothin
     elif bg == 1:
         o = objs2
 
-    i=0
-    for obj in o:
-        i+=1
+    
+    for i, obj in enumerate(o):
         nom = obj.nom if obj.nom != "bo" else str(i)
         plan[nom]=obj
 

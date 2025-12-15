@@ -38,7 +38,6 @@ class Reactor:
         self.water_amount = 5000
         self.steam_amount = 0
         self.boiling_coefficient = 5
-        self.amount_boiled = 0
         self.pressure = 0
         self.steam_pressure_coefficient = 3.1
         self.saturation_temperature = boiling_point(self.pressure)
@@ -116,12 +115,12 @@ class Reactor:
         #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
         if self.water_temperature > self.saturation_temperature:
             temperature_surplus = self.water_temperature - self.saturation_temperature
-            self.amount_boiled = int(temperature_surplus * self.boiling_coefficient)
+            amount_boiled = int(temperature_surplus * self.boiling_coefficient)
 
             self.water_temperature = self.saturation_temperature
 
-            self.water_amount -= self.amount_boiled
-            self.steam_amount += self.amount_boiled
+            self.water_amount -= amount_boiled
+            self.steam_amount += amount_boiled
 
             self.pressure = (self.steam_amount * 
                              self.steam_pressure_coefficient * 
