@@ -26,15 +26,15 @@ class Reactor:
     """
 
     def __init__(self, fuel=100):
-        #Gestion général du réacteur
+        # Gestion général du réacteur
         self.assembly = Reactor_Fuel_Assembly(fuel)
         self.previews_power = 0.0
 
-        #Gestion de la température
+        # Gestion de la température
         self.water_temperature = 30
-        self.heat_per_power = 10
+        self.heat_per_power = 20
 
-        #Gestion de l'eau
+        # Gestion de l'eau
         self.water_amount = 5000
         self.steam_amount = 0
         self.boiling_coefficient = 5
@@ -47,7 +47,7 @@ class Reactor:
         self.water_density = 1000
 
     def refresh(self):
-        #Actualise la physique du réacteur
+        # Actualise la physique du réacteur (toute les 1 secondes)
         self.previews_power = self.power()
 
         self.water_density = water_density(self.water_temperature)
@@ -65,7 +65,8 @@ class Reactor:
         return
 
     def power(self):
-        #Permet de connaitre la puissance thermique du réacteur
+        # Permet de connaitre la puissance thermique du réacteur en pourcentage
+        # calcul de la moyenne de la puissance de chaque assemblage
         temp = []
         for i in self.assembly:
             for j in i:
@@ -74,7 +75,8 @@ class Reactor:
         return result
 
     def period(self, time_step):
-        #Permet de connaitre la période du réacteur (son accelération)
+        # Permet de connaitre la période du réacteur
+        # Calcul indépendant des assemblage 
         try:
             ReactorPeriod = 1 / math.log( self.power() / self.previews_power ) * (1 / time_step)
         except:
@@ -84,25 +86,27 @@ class Reactor:
         return ReactorPeriod
     
     def raise_rods(self, x, y, value):
-        #permet de controler les barres de contrôle de chaque assemblage
+        # permet de controler les barres de contrôle de chaque assemblage
         self.assembly[x][y].raise_rods(value)
 
     def __debug_raise__(self, amount=100):
-        #Permet de tester la physique du réacteur
+        # Permet de tester la physique du réacteur à pleine puissance
+        # Permet de calibrer les coefficients
         for i in range(len(self.assembly)):
             for j in range(len(self.assembly[i])):
                 self.assembly[i][j].rods_pulled = amount
 
     def temperature(self):
-        #Permet d'avoir la température de l'eau du réacteur
+        # Permet d'avoir la température de l'eau du réacteur
         return self.water_temperature
     
     def water_level(self):
-        #Permet d'avoir le niveau d'eau dans le réacteur
+        # Permet d'avoir le niveau d'eau dans le réacteur
         level = self.water_amount/self.water_density * self.level_coefficient
         return level
     
     def add_water(self, pump, feedwater_temperature):
+        # Permet de simuler l'ajout d'eau dans le reacteur via les pompes d'alimentation
         MIXING_COEFF = 0.01
         self.water_temperature = (( self.water_temperature + pump.flow * feedwater_temperature * MIXING_COEFF ) / 
                                   ( 1 + pump.flow * MIXING_COEFF ))
@@ -112,7 +116,8 @@ class Reactor:
         self.steam_amount -= amount
     
     def __weter_refresh__(self):
-        #Permet d'actualiser l'état et la physique de l'eau dans le réacteur
+        # Permet d'actualiser l'état et la physique de l'eau dans le réacteur
+        # Auto géré par le refresh global
         if self.water_temperature > self.saturation_temperature:
             temperature_surplus = self.water_temperature - self.saturation_temperature
             amount_boiled = int(temperature_surplus * self.boiling_coefficient)
@@ -139,20 +144,20 @@ class Assembly():
         Capable de générer de la chaleur.
     """
     def __init__(self, fuel):
-        #Gestion arbitraire des neutrons
+        # Gestion arbitraire des neutrons
         self.max_neutron = 100000000000
         self.number_of_neutrons = 1000
         self.idle_neutrons= 1000
         self.previews_neutrons = 1000
 
-        #Gestion de la puissance/accelération du réacteur
+        # Gestion de la puissance/accelération du réacteur
         self.rods_pulled = 0
         self.some_factors = 1
 
         self.fuel = fuel
 
     def refresh(self, water_density):
-        #Actualise la physique de l'assemblage combustible
+        # Actualise la physique de l'assemblage combustible
         voidcoefficient =  1 - (0.3 * self.number_of_neutrons / self.max_neutron)
 
         self.some_factors = (2 * ( 0.2 + self.rods_pulled * 0.8 / 100 ) * 
@@ -166,17 +171,19 @@ class Assembly():
 
 
     def get_power(self):
-        #Permet de connaitre la puissance thermique local de l'assemblage
+        # Permet de connaitre la puissance thermique local de l'assemblage en pourcentage
         power = self.number_of_neutrons / self.max_neutron
         return power
 
     def get_period(self, TimeStep):
-        #Permet de connaitre la période local de l'assemblage
+        # Permet de connaitre la période local de l'assemblage
+        # Pas utilisé puisque c'est un réacteur 2 dimensions
+        # M'a permis de tester le système d'assemblage (quand c'était encore un réacteur 1 dimension)
         try:
             reactor_period = 1 / math.log( self.number_of_neutrons / self.previews_neutrons ) * (1 / TimeStep)
         except:
             return float("inf")
-        if reactor_period>5000:
+        if reactor_period>10000:
             return float("inf")
         return reactor_period
     
@@ -191,7 +198,8 @@ class Assembly():
         self.rods_pulled += value
 
     def __debug_raise__(self):
-        #Permet de tester la physique
+        # Permet de tester la physique à pleine puissance (cela me permet de calibrer les différents coefficient
+        # pour coller au mieux à la réalité)
         self.rods_pulled = 100
 
     

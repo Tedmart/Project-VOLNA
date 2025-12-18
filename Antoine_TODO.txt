@@ -22,8 +22,9 @@ Condensateur:
 
 
 Panneau éléctrique:
-    TODO (très important pour l'immersion et le réalisme)
+    TODO (très important pour l'immersion et le réalisme mais pas essentiel pour le gameplay principal)
+    (donner le shéma à jules pour le jour ou il va bouger son troue du fion (fiak (anus (prépus (gland)))))
 
 
 Désaérateur:
-    TODO (en dernier ca c'est pas utile)
+    TODO (en dernier car c'est pas utile)

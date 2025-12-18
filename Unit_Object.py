@@ -3,20 +3,23 @@ import Turbine_Object
 
 class Unit:
 
-    def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=Turbine_Object.Turbine(), condenser=None, deaerator=None):
-        #Partie réacteur et son alimentation
+    def __init__(self, reactor=Reactor_Object.Reactor(100), turbine=Turbine_Object.Turbine(), condenser=None, deaerator=None, electrical_pannel=None):
+        # Partie réacteur et son alimentation
         self.reactor = reactor
         self.fwp_1 = pump()
         self.fwp_2 = pump()
 
-        #Partie turbine
+        # Partie turbine
         self.turbine = turbine
 
-        #Partie condensateur
+        # Partie condensateur
         self.condenser = condenser
 
-        #Partie désaérateur
+        # Partie désaérateur
         self.deaerator = deaerator
+
+        # Panneau éléctrique
+        self.electrical_pannel = electrical_pannel
 
 
         self.rods_speed = 0.025

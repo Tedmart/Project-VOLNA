@@ -31,7 +31,7 @@ class Turbine:
         self.relief_coeff = 1.5
 
     def refresh(self, pressure):
-        # Conversion % → fraction
+        # Conversion % vers fraction
         valve_frac = self.valve / 100
         bypass_frac = self.bypass / 100
 
@@ -71,5 +71,7 @@ class Turbine:
 
 
 turbine = Turbine()
+turbine.bypass_open()
+turbine.bypass_setpoint(100)
 
 turbine.refresh(7100)
