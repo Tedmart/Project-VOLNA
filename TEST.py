@@ -18,12 +18,15 @@ while True:
     print(f"Temp : {unit.temperature()}")
     print(f"Water : {unit.reactor.water_amount}")
     print(f"Steam : {unit.reactor.steam_amount}")
+    print(f"RPM : {unit.turbine.get_rpm()}")
     
 
     unit.__debug_raise__()
     unit.refresh()
     unit.fast_refresh()
     unit.bypass_valve(True)
-    unit.set_bypass(40)
+    unit.set_bypass(100)
+    unit.main_valve(True)
+    unit.set_valve(100)
     sleep(1)
     print("\n")

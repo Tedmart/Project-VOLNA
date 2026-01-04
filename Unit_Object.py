@@ -112,7 +112,7 @@ class Unit:
     # Gestion turbine
     def main_valve(self, open):
         if open:
-            self.turbine.valve_open()
+            self.turbine.valve_open(self.reactor.pressure)
         else:
             self.turbine.valve_close()
 

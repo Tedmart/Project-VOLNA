@@ -11,6 +11,11 @@ class Turbine:
         possède deux mode, mode libre (0) et mode synchronisé (1)
     """
     def __init__(self):
+
+        self.rpm = 0
+        self.RPM_COEFF = 0.05
+        self.LAG = 10
+
         # Rotation libre (0) ou Rotation synchronisée (1)
         self.mode = 0
 
@@ -42,14 +47,18 @@ class Turbine:
         total_out = int(turbine_steam + bypass_steam)
         print(total_out)
 
+        rpm_goal = turbine_steam * pressure * self.RPM_COEFF
+        self.rpm = self.rpm + (rpm_goal - self.rpm)/self.LAG
+
         return total_out
     
+    # Valve principale
     def valve_close(self):
         self.valve_on = False
         self.valve = 0
     
     def valve_open(self, pressure):
-        if pressure < 5000:
+        if pressure < 4000:
             return
         self.valve_on = True
 
@@ -57,6 +66,7 @@ class Turbine:
         if self.valve_on:
             self.valve = value
     
+    # Valve de contournement
     def bypass_close(self):
         self.bypass_on = False
         self.bypass = 0
@@ -67,6 +77,10 @@ class Turbine:
     def bypass_setpoint(self, value):
         if self.bypass_on:
             self.bypass = value
+
+    # Turbine en elle-même
+    def get_rpm(self):
+        return self.rpm
 
 
 

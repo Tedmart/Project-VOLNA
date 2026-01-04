@@ -32,14 +32,14 @@ class Reactor:
 
         # Gestion de la température
         self.water_temperature = 30
-        self.heat_per_power = 20
+        self.heat_per_power = 200
 
         # Gestion de l'eau
         self.water_amount = 5000
         self.steam_amount = 0
-        self.boiling_coefficient = 5
+        self.boiling_coefficient = 3
         self.pressure = 0
-        self.steam_pressure_coefficient = 3.1
+        self.steam_pressure_coefficient = 0.5
         self.saturation_temperature = boiling_point(self.pressure)
 
         self.level_coefficient = 10
