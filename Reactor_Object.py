@@ -5,13 +5,15 @@ from statistics import mean
 
 
 def Reactor_Fuel_Assembly(fuel):
-    matrice = []
-    matrice.append([Assembly(fuel) for j in range(2)])
-    matrice.append([Assembly(fuel) for j in range(4)])
-    matrice.append([Assembly(fuel) for j in range(6)])
-    matrice.append([Assembly(fuel) for j in range(6)])
-    matrice.append([Assembly(fuel) for j in range(4)])
-    matrice.append([Assembly(fuel) for j in range(2)])
+    mask = [
+        [0,0,1,1,0,0],
+        [0,1,1,1,1,0],
+        [1,1,1,1,1,1],
+        [1,1,1,1,1,1],
+        [0,1,1,1,1,0],
+        [0,0,1,1,0,0],
+    ]
+    matrice = [[Assembly(fuel) if mask[x][y]==1 else None for y in range(len(mask[x]))] for x in range(len(mask))]
 
     return matrice
 
@@ -33,11 +35,14 @@ class Reactor:
         # Gestion de la température
         self.water_temperature = 30
         self.heat_per_power = 200
+        self.energy_loss_coefficient = 0.03/100
+        self.ambient_temperature = 30
 
         # Gestion de l'eau
         self.water_amount = 5000
         self.steam_amount = 0
         self.boiling_coefficient = 3
+        self.condensation_coefficient = 3
         self.pressure = 0
         self.steam_pressure_coefficient = 0.5
         self.saturation_temperature = boiling_point(self.pressure)
@@ -56,9 +61,16 @@ class Reactor:
 
         for i in range(len(self.assembly)):
             for j in range(len(self.assembly[i])):
+                if self.assembly[i][j] is None:
+                    continue
                 self.assembly[i][j].refresh(self.water_density)
 
         self.water_temperature += self.power() * self.heat_per_power
+
+        self.water_temperature -= (
+            (self.water_temperature - self.ambient_temperature)
+            * self.energy_loss_coefficient
+        )
 
         self.__weter_refresh__()
         
@@ -70,6 +82,8 @@ class Reactor:
         temp = []
         for i in self.assembly:
             for j in i:
+                if j is None:
+                    continue
                 temp.append(j.get_power())
         result = mean(temp)
         return result
@@ -94,6 +108,8 @@ class Reactor:
         # Permet de calibrer les coefficients
         for i in range(len(self.assembly)):
             for j in range(len(self.assembly[i])):
+                if self.assembly[i][j] is None:
+                    continue
                 self.assembly[i][j].rods_pulled = amount
 
     def temperature(self):
@@ -132,6 +148,21 @@ class Reactor:
                              ( self.water_temperature + 273 ) / 373)
 
             self.saturation_temperature = boiling_point(self.pressure)
+        
+        elif self.water_temperature < self.saturation_temperature:
+            temperature_deficit = self.saturation_temperature - self.water_temperature
+            amount_condensed = int(temperature_deficit * self.condensation_coefficient)
+
+            amount_condensed = min(amount_condensed, self.steam_amount)
+
+            self.steam_amount -= amount_condensed
+            self.water_amount += amount_condensed
+
+            self.pressure = (self.steam_amount * 
+                            self.steam_pressure_coefficient * 
+                            ( self.water_temperature + 273 ) / 373)
+
+            self.saturation_temperature = boiling_point(self.pressure)
 
 
 
@@ -158,12 +189,12 @@ class Assembly():
 
     def refresh(self, water_density):
         # Actualise la physique de l'assemblage combustible
-        voidcoefficient =  1 - (0.3 * self.number_of_neutrons / self.max_neutron)
+        heat_coefficient =  1 - (0.3 * self.number_of_neutrons / self.max_neutron)
 
         self.some_factors = (2 * ( 0.2 + self.rods_pulled * 0.8 / 100 ) * 
                              (water_density / 1000) ** 0.1 * 
                              (self.fuel / 100) * 
-                             voidcoefficient)
+                             heat_coefficient)
         self.previews_neutrons = self.number_of_neutrons
         self.number_of_neutrons = self.some_factors * (self.previews_neutrons + self.idle_neutrons)
 
@@ -216,6 +247,9 @@ def Propagation(matrice:list[list[Assembly]]):
     for x in range(len(matrice)):
         for y in range(len(matrice[x])):
 
+            if matrice[x][y] is None:
+                continue
+
             neutrons = matrice[x][y].number_of_neutrons
             propagation = neutrons/2
             matrice[x][y].number_of_neutrons -= propagation
@@ -226,13 +260,13 @@ def Propagation(matrice:list[list[Assembly]]):
             neutrons_loss = 0
 
             for x1,y1 in direct_direction:
-                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1:
+                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1 and matrice[x+x1][y+y1] is not None:
                     neutron_matrice[x+x1][y+y1] += direct_portion
                 else:
                     neutrons_loss += direct_portion
 
             for x1,y1 in diagonal_direction:
-                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1:
+                if 0 <= x+x1 <= len(matrice)-1 and 0 <= y+y1 <= len(matrice[x+x1])-1 and matrice[x+x1][y+y1] is not None:
                     neutron_matrice[x+x1][y+y1] += diagonal_portion
                 else:
                     neutrons_loss += diagonal_portion
@@ -242,6 +276,8 @@ def Propagation(matrice:list[list[Assembly]]):
     
     for x in range(len(matrice)):
         for y in range(len(matrice[x])):
+            if matrice[x][y] is None:
+                continue
             matrice[x][y].number_of_neutrons += neutron_matrice[x][y]
 
 

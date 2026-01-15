@@ -11,6 +11,8 @@ turbine.valve_open(7100)
 turbine.valve_setpoint(40)
 turbine.refresh(pressure=7100)
 
+stop = False
+
 while True:
     print(f"Power : {unit.thermal_power() * 100}")
     print(f"Period : {unit.period()}")
@@ -19,14 +21,14 @@ while True:
     print(f"Water : {unit.reactor.water_amount}")
     print(f"Steam : {unit.reactor.steam_amount}")
     print(f"RPM : {unit.turbine.get_rpm()}")
+    if unit.temperature() > 150:
+        stop = True
     
-
-    unit.__debug_raise__()
+    if stop:
+        unit.__debug_raise__(0)
+    else:
+        unit.__debug_raise__()
     unit.refresh()
     unit.fast_refresh()
-    unit.bypass_valve(True)
-    unit.set_bypass(100)
-    unit.main_valve(True)
-    unit.set_valve(100)
     sleep(1)
     print("\n")

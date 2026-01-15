@@ -1,4 +1,6 @@
 Reacteur:
+    - Gestion condensation interne IMPORTANT
+
     - gestion de la température de l'eau d'alimentation
 
     -Gestion des vérification:
