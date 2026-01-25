@@ -22,7 +22,7 @@ class Unit:
         self.electrical_pannel = electrical_pannel
 
 
-        self.rods_speed = 0.025
+        self.rods_speed = 0.5
 
     
     """Gestion globale"""
@@ -49,50 +49,32 @@ class Unit:
     """Gestion du réacteur"""
     def raise_rods(self, rods):
         value = self.rods_speed
+        l = 0
 
-        # Définition des tailles de groupes
-        groups = [2, 4, 6, 6, 4, 2]
-
-        # offset = position de départ de chaque groupe dans la liste plate
-        offset = 0
-
-        for g, group_size in enumerate(groups):
-            for pos in range(group_size):
-                flat_index = offset + pos
-
-                if flat_index < len(rods) and rods[flat_index]:
-                    try:
-                        self.reactor.raise_rods(g, pos, value)
-                    except IndexError:
-                        print(f"position = {flat_index}, groupe = {g}, pos = {pos}, erreur = {IndexError}")
-
-            offset += group_size
+        for x in range(len(self.reactor.assembly)):
+            for y in range(len(self.reactor.assembly[x])):
+                if self.reactor.assembly[x][y] is None:
+                    continue
+                if rods[l]==1:
+                    self.reactor.assembly[x][y].raise_rods(value)
+                    l+=1
 
     def lower_rods(self, rods):
         value = -self.rods_speed
+        l=0
 
-        # Définition des tailles de groupes
-        groups = [2, 4, 6, 6, 4, 2]
-
-        # offset = position de départ de chaque groupe dans la liste plate
-        offset = 0
-
-        for g, group_size in enumerate(groups):
-            for pos in range(group_size):
-                flat_index = offset + pos
-
-                if flat_index < len(rods) and rods[flat_index]:
-                    try:
-                        self.reactor.raise_rods(g, pos, value)
-                    except IndexError:
-                        print(f"position = {flat_index}, groupe = {g}, pos = {pos}, erreur = {IndexError}")
-
-            offset += group_size
+        for x in range(len(self.reactor.assembly)):
+            for y in range(len(self.reactor.assembly[x])):
+                if self.reactor.assembly[x][y] is None:
+                    continue
+                if rods[l]==1:
+                    self.reactor.assembly[x][y].raise_rods(value)
+                    l+=1
 
 
 
     def thermal_power(self):
-        return self.reactor.power()
+        return self.reactor.power() * 100
     
     def period(self):
         return self.reactor.period(1)

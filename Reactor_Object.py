@@ -24,7 +24,7 @@ class Reactor:
         capable de gérer sa propre physique.
         capable de produire de la vapeur.
         possibilité d'y injecter de l'eau.
-        possibilité d'y extraire de la vapeur ainsi que de la préssion.
+        possibilité d'y extraire de la vapeur ainsi que de la pression.
     """
 
     def __init__(self, fuel=100):

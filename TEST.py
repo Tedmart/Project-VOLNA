@@ -13,7 +13,8 @@ turbine.refresh(pressure=7100)
 
 stop = False
 
-while True:
+
+while not stop:
     print(f"Power : {unit.thermal_power() * 100}")
     print(f"Period : {unit.period()}")
     print(f"Pressure : {unit.reactor.pressure}")

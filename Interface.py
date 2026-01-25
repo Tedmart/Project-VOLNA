@@ -56,6 +56,19 @@ def changeBg(arg):
         GLOBALplan[bg] = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg)
     plan = GLOBALplan[bg]
 
+def change_rod_value():
+    global plan
+    c = 24
+    base = "rod"
+
+    for x in range(len(unit.reactor.assembly)):
+        for y in range(len(unit.reactor.assembly[x])):
+            if unit.reactor.assembly[x][y] is None:
+                continue
+            else:
+                affichage = base + str(c)
+                plan[affichage].change_valeur(unit.reactor.assembly[x][y].rods_pulled)
+                c -= 1
 
 class Sprite:
     def __init__(self,x,y,L=40,l=20,type="img/type.png",nom="bo"):
@@ -219,7 +232,8 @@ while running:
         if event.type == pygame.QUIT : leave()
         if event.type == PHYSICS_REFRESH:
             if bg == 0:
-                plan["temp"].change_valeur(f"{round(unit.temperature(), 0)}°C")
+                plan["power"].change_valeur(f"{round(unit.thermal_power(), 2)}%")
+                plan["period"].change_valeur(f"{unit.period()}s")
             unit.refresh()
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 
@@ -229,8 +243,7 @@ while running:
                     unit.raise_rods(rodsLists)
                 elif rods_state == -1:
                     unit.lower_rods(rodsLists)
-                plan["incr"].change_valeur(f"{round(unit.reactor.assembly[0][0].rods_pulled, 3)}")
-                plan["voila"].change_valeur(unit.reactor.assembly[0][0].rods_pulled)
+                change_rod_value()
             unit.fast_refresh()
             pygame.time.set_timer(FAST_REFRESH, 500)
             

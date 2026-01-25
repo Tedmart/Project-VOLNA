@@ -16,8 +16,10 @@ class Turbine:
         self.RPM_COEFF = 0.05
         self.LAG = 10
 
-        # Rotation libre (0) ou Rotation synchronisée (1)
-        self.mode = 0
+        # Rotation libre (False) ou Rotation synchronisée (True)
+        self.mode = False
+
+        self.phase = 0
 
         # Etat de l'activation de la valve principal et de la valve de contournement
         self.valve_on = False
@@ -28,7 +30,7 @@ class Turbine:
         self.bypass = 0
 
         # Coefficient d'ouverture -- à ajuster
-        self.turbine_coeff = 1.0
+        self.turbine_coeff = 0.4
         self.bypass_coeff = 0.1
 
         # Valve d'urgence pour drainer la pression de la vapeur
@@ -36,6 +38,9 @@ class Turbine:
         self.relief_coeff = 1.5
 
     def refresh(self, pressure):
+        phase_coeff = 1
+        #self.phase = self.phase + phase_coeff * (self.rpm - 1500, 1500)
+
         # Conversion % vers fraction
         valve_frac = self.valve / 100
         bypass_frac = self.bypass / 100
@@ -47,8 +52,13 @@ class Turbine:
         total_out = int(turbine_steam + bypass_steam)
         print(total_out)
 
-        rpm_goal = turbine_steam * pressure * self.RPM_COEFF
-        self.rpm = self.rpm + (rpm_goal - self.rpm)/self.LAG
+        if self.mode:
+            rpm_goal = turbine_steam * pressure * self.RPM_COEFF
+            self.rpm = self.rpm + (rpm_goal - self.rpm)/self.LAG
+
+        else:
+            self.rpm = 1500
+
 
         return total_out
     
@@ -77,6 +87,16 @@ class Turbine:
     def bypass_setpoint(self, value):
         if self.bypass_on:
             self.bypass = value
+
+    # Disjoncteur principal
+    def breaker(self):
+        if not self.mode and not self.check_condition():
+            return
+        else:
+            self.mode = not self.mode
+        
+    def check_condition(self):
+        return True
 
     # Turbine en elle-même
     def get_rpm(self):
