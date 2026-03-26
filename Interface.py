@@ -6,26 +6,20 @@ from Screen_Object import objects
 
 unit = Unit_Object.Unit()
 
-
-"""
-différent type de bouton, comme un switch par exemple
-différent type d'affichage (aiguille)
-"""
 # --- Couleurs ---
-BLANC = (255, 255, 255)
-GRIS = (180, 180, 180)
-GRIS_FONCE = (140, 140, 140)
-NOIR = (0, 0, 0)
-ROUGE = (255,0,0)
-GOLD = (255,215,0)
-BLEU = (0,0,255)
+BLANC      = (255, 255, 255)
+GRIS       = (180, 180, 180)
+GRIS_FONCE = (100, 100, 100)
+NOIR       = (0,   0,   0)
+ROUGE      = (255, 0,   0)
 
-i=0
-rodsLists = [False for i in range(24)]
+rodsLists = [False for _ in range(24)]
 rods_state = 0
 
+
+# ── Callbacks globaux ─────────────────────────────────────────────────────────
+
 def leave(a=None):
-    running = False
     pygame.quit()
     sys.exit()
 
@@ -33,208 +27,304 @@ def barres(a):
     global rods_state
     rods_state = a
 
-def incr(a):
-    plan["incr"].change_valeur(a)
-
 def nothing(a=None):
     pass
 
 def antoine(a=None):
-    rodsLists[a-1]= not rodsLists[a-1]
-
-def afficherLst(a=None):
-    print(rodsLists)
+    rodsLists[a - 1] = not rodsLists[a - 1]
 
 def changeBg(arg):
-    global GLOBALplan
-    global plan
-    global bg
+    global GLOBALplan, plan, bg
     bg = arg
-    try:
-        GLOBALplan[bg]
-    except:
-        GLOBALplan[bg] = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg)
+    if bg not in GLOBALplan:
+        GLOBALplan[bg] = objects(
+            Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
+            antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg
+        )
     plan = GLOBALplan[bg]
 
-def change_rod_value():
-    global plan
-    c = 24
-    base = "rod"
 
+# ── Mise à jour afficheurs barres (bg=0) ──────────────────────────────────────
+
+def change_rod_value():
+    c = 24
     for x in range(len(unit.reactor.assembly)):
         for y in range(len(unit.reactor.assembly[x])):
             if unit.reactor.assembly[x][y] is None:
                 continue
-            else:
-                affichage = base + str(c)
-                plan[affichage].change_valeur(unit.reactor.assembly[x][y].rods_pulled)
-                c -= 1
+            plan["rod" + str(c)].change_valeur(
+                int(unit.reactor.assembly[x][y].rods_pulled)
+            )
+            c -= 1
+
+
+# ── Mise à jour afficheurs turbine (bg=1) ─────────────────────────────────────
+
+def update_turbine_screen():
+    t   = unit.turbine
+    scr = GLOBALplan.get(1)
+    if scr is None:
+        return
+    rpm = t.get_rpm()
+    scr["turb_rpm"].change_valeur(rpm)
+    scr["turb_power"].change_valeur(t.get_power())
+    scr["turb_rpm_num"].change_valeur(f"{rpm} rpm")
+    scr["turb_power_num"].change_valeur(f"{t.get_power():.1f} MW")
+    scr["turb_valve_num"].change_valeur(f"Valve: {t.valve:.1f}%")
+    scr["turb_bypass_num"].change_valeur(f"Bypass: {t.bypass:.1f}%")
+    scr["turb_pressure_num"].change_valeur(f"Press: {round(unit.reactor.pressure)}")
+    if t.is_sync():
+        scr["turb_sync"].change_valeur("SYNC")
+        scr["turb_breaker_state"].change_valeur("ON GRID")
+    else:
+        ecart = abs(rpm - t.RPM_CIBLE)
+        scr["turb_sync"].change_valeur(
+            f"READY ({ecart:.0f})" if ecart < 50 else f"FREE ({rpm:.0f})"
+        )
+        scr["turb_breaker_state"].change_valeur("OFF GRID")
+
+
+# ── Gestion des HoldButtons au fast_refresh ───────────────────────────────────
+
+def process_hold_buttons():
+    for obj in plan.values():
+        if isinstance(obj, HoldButton) and obj.held:
+            obj.func(obj.arg)
+
+
+# ── Classes sprites ───────────────────────────────────────────────────────────
 
 class Sprite:
-    def __init__(self,x,y,L=40,l=20,type="img/type.png",nom="bo"):
-        self.x=x
-        self.y=y
-        self.L=L
-        self.l=l
-        self.type=type
-        self.nom=nom
+    def __init__(self, x, y, L=40, l=20, type="img/type.png", nom="bo"):
+        self.x = x; self.y = y; self.L = L; self.l = l
+        self.type = type; self.nom = nom
 
-    def __repr__(self):
-        return f"Sprite({self.x},{self.y},{self.L},{self.l},{self.type},{self.nom})"
 
 class Poussoir(Sprite):
-    def __init__(self,x,y,L=50,l=50,type="img/poussoir.png",typeBis="img/poussoir_.png",nom="bo",func=leave,arg="oui",func2=nothing,arg2=None,on=False,verr=False,liens=[]):
-        Sprite.__init__(self,x,y,L,l,type,nom)
-        self.clicked=False
-        self.on=on
-        self.typeBis=typeBis
-        self.func=func
-        self.arg=arg
-        self.func2=func2
-        self.arg2=arg2
-        self.liens=liens
-        self.verr=verr
-
-    def __repr__(self):
-        return f"Poussoir({self.x},{self.y},{self.type},{self.nom},{self.func},{self.liens})"
+    """Toggle classique — reste enfoncé."""
+    def __init__(self, x, y, L=50, l=50,
+                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 nom="bo", func=None, arg=None, func2=None, arg2=None,
+                 on=False, verr=False, liens=None, label=""):
+        super().__init__(x, y, L, l, type, nom)
+        self.clicked = False
+        self.on      = on
+        self.typeBis = typeBis
+        self.func    = func  if func  is not None else nothing
+        self.arg     = arg
+        self.func2   = func2 if func2 is not None else nothing
+        self.arg2    = arg2
+        self.liens   = liens if liens is not None else []
+        self.verr    = verr
+        self.label   = label
 
     def switch(self):
         self.on = not self.on
         self.func2(self.arg2)
 
+
+class Impulsion(Sprite):
+    """Momentané — revient automatiquement à off après le clic."""
+    def __init__(self, x, y, L=50, l=50,
+                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 nom="bo", func=None, arg=None, label=""):
+        super().__init__(x, y, L, l, type, nom)
+        self.clicked = False
+        self.on      = False
+        self.typeBis = typeBis
+        self.func    = func if func is not None else nothing
+        self.arg     = arg
+        self.label   = label
+        self.liens = []; self.verr = False
+        self.func2 = nothing; self.arg2 = None
+
+
+class HoldButton(Sprite):
+    """Maintenu — action répétée au fast_refresh tant que le bouton est tenu."""
+    def __init__(self, x, y, L=50, l=50,
+                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 nom="bo", func=None, arg=None, label=""):
+        super().__init__(x, y, L, l, type, nom)
+        self.held    = False
+        self.on      = False
+        self.typeBis = typeBis
+        self.func    = func if func is not None else nothing
+        self.arg     = arg
+        self.label   = label
+        self.liens = []; self.verr = False
+        self.func2 = nothing; self.arg2 = None; self.clicked = False
+
+
 class Levier(Poussoir):
-    def __init__(self,x,y,L=20,l=37,type="img/levier.png",typeBis="img/levier_.png",nom="bo",func=leave,arg="non",func2=nothing,arg2=None,on=False,verr=False,liens=[]):
-        Poussoir.__init__(self,x,y,L,l,type,typeBis,nom,func,arg,func2,arg2,on,verr,liens)
-        
-    def __repr__(self):
-        return f"Levier({self.x},{self.y},{self.type},{self.nom},{self.func},{self.liens})"
+    def __init__(self, x, y, L=20, l=37,
+                 type="img/levier.png", typeBis="img/levier_.png",
+                 nom="bo", func=None, arg=None, func2=None, arg2=None,
+                 on=False, verr=False, liens=None, label=""):
+        super().__init__(x, y, L, l, type, typeBis, nom,
+                         func, arg, func2, arg2, on, verr, liens, label)
+
 
 class Afficheur(Sprite):
-    def __init__(self,x,y,L=56,l=44,type="img/num.png",nom="bo",valeur=0):
-        Sprite.__init__(self,x,y,L,l,type,nom)
-        self.valeur=valeur
-
-    def change_valeur(self,valeur):
+    def __init__(self, x, y, L=56, l=44, type="img/num.png", nom="bo", valeur=0):
+        super().__init__(x, y, L, l, type, nom)
         self.valeur = valeur
 
-    def __repr__(self):
-        return f"Afficheur({self.x},{self.y},{self.type},{self.valeur},{self.nom})"
+    def change_valeur(self, v):
+        self.valeur = v
+
 
 class Jauge(Afficheur):
-    def __init__(self,x,y,L=70,l=49,type="img/cadrant.png",nom="bo",valeur=0,MAX=10):
-        Afficheur.__init__(self,x,y,L,l,type,nom,valeur)
-        self.MAX=MAX
-        deg = 0
-        self.deg=deg
-    def change_valeur(self,valeur):
+    def __init__(self, x, y, L=70, l=49, type="img/cadrant.png", nom="bo", valeur=0, MAX=10):
+        super().__init__(x, y, L, l, type, nom, valeur)
+        self.MAX = MAX; self.deg = 0
+
+    def change_valeur(self, valeur):
         self.valeur = valeur
-        MAX = self.MAX
-        valeur = valeur%MAX
-        self.deg=int(round((valeur/MAX)*180,0))
-        print(self.deg)
-        
-# --- Initialisation ---
+        v = valeur % self.MAX if self.MAX != 0 else 0
+        self.deg = int(round((v / self.MAX) * 180, 0))
+
+
+# ── Initialisation Pygame ──────────────────────────────────────────────────────
+
 pygame.init()
-running = True
 
-# --- Résolution virtuelle ---
-VIRTUAL_W = 1920
-VIRTUAL_H = 1080
-
-# Résolution réelle de l'écran
+VIRTUAL_W, VIRTUAL_H = 1920, 1080
 real_w = pygame.display.Info().current_w
 real_h = pygame.display.Info().current_h
+scale  = min(real_w / VIRTUAL_W, real_h / VIRTUAL_H)
 
-# Facteur de scale
-scale_x = real_w / VIRTUAL_W
-scale_y = real_h / VIRTUAL_H
-scale = min(scale_x, scale_y)
-
-# Surface virtuelle (où tout est dessiné)
 virtual_screen = pygame.Surface((VIRTUAL_W, VIRTUAL_H))
-
-# Fenêtre réelle
 ecran = pygame.display.set_mode((real_w, real_h))
-
-
 pygame.display.set_caption("Projet : VOLNA")
-# --- Police ---
-font = pygame.font.SysFont(None, 36)
-# --- Plan ---
+
+font       = pygame.font.SysFont(None, 36)
+font_label = pygame.font.SysFont(None, 20)
+
 bg = 0
 GLOBALplan = {}
-GLOBALplan[bg] = objects(Poussoir, Afficheur, Levier, Jauge, antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg)
+GLOBALplan[bg] = objects(
+    Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
+    antoine, unit, rodsLists, nothing, leave, barres, changeBg, bg
+)
 plan = GLOBALplan[bg]
 
+clock = pygame.time.Clock()
 
-clock = pygame.time.Clock()  # stabilise les FPS
 
-def bouton(obj):
-    # Adapter la souris à la résolution virtuelle
-    souris = (
-        pygame.mouse.get_pos()[0] / scale,
-        pygame.mouse.get_pos()[1] / scale
-    )
+# ── Rendu ─────────────────────────────────────────────────────────────────────
 
+def draw_label(obj, bx):
+    if getattr(obj, 'label', ''):
+        lbl = font_label.render(obj.label, True, NOIR)
+        virtual_screen.blit(lbl, lbl.get_rect(centerx=bx.centerx, bottom=bx.top - 2))
+
+
+def blit_sprite(obj, bx):
+    active = getattr(obj, 'on', False) or getattr(obj, 'held', False)
+    path   = obj.typeBis if active else obj.type
+    try:
+        img = pygame.image.load(path)
+    except Exception:
+        img = pygame.Surface((obj.L, obj.l))
+        img.fill(GRIS_FONCE if active else GRIS)
+    virtual_screen.blit(img, bx)
+
+
+def bouton(obj, bx):
+    souris = (pygame.mouse.get_pos()[0] / scale,
+              pygame.mouse.get_pos()[1] / scale)
     clic = pygame.mouse.get_pressed()[0]
-    clicked = obj.clicked
-    
-    # Changement de sprite au survol
-    #type = pygame.image.load(obj.typeBis) if box.collidepoint(souris) or obj.on else pygame.image.load(obj.type)
-    # Changement de sprite si est activé
-    type = pygame.image.load(obj.typeBis) if obj.on else pygame.image.load(obj.type)
-    virtual_screen.blit(type, box)
-
-    if clic and box.collidepoint(souris) and clicked:
+    blit_sprite(obj, bx)
+    draw_label(obj, bx)
+    if clic and bx.collidepoint(souris) and obj.clicked:
         for lien in obj.liens:
-            btn = plan[lien]
-            if not obj.on and btn.on:
+            btn = plan.get(lien)
+            if btn and not obj.on and btn.on:
                 btn.switch()
     if obj.on and obj.verr:
         return False
-    return clic and box.collidepoint(souris) and clicked
+    return clic and bx.collidepoint(souris) and obj.clicked
 
-def panneau(obj):
-    type = pygame.image.load(obj.type)
-    #pygame.draw.rect(ecran, couleur, box)
-    virtual_screen.blit(type, box)
-    if isinstance(obj,Jauge):
-        img = "img/aiguille.png"
-        l = 70
-        L = 10
-        aig = pygame.transform.rotate(pygame.image.load(img), -obj.deg)
-        new_rect = aig.get_rect(center = aig.get_rect(center = (obj.x+(obj.L/2), obj.y+obj.l-L)).center)
-        virtual_screen.blit(aig, new_rect)
+
+def bouton_impulsion(obj, bx):
+    souris = (pygame.mouse.get_pos()[0] / scale,
+              pygame.mouse.get_pos()[1] / scale)
+    clic = pygame.mouse.get_pressed()[0]
+    blit_sprite(obj, bx)
+    draw_label(obj, bx)
+    if clic and bx.collidepoint(souris):
+        obj.on = True
+        if obj.clicked:
+            obj.func(obj.arg)
+            obj.clicked = False
     else:
-        texte = font.render(str(obj.valeur), True, NOIR)
-        texte_rect = texte.get_rect(center=box.center)
-        virtual_screen.blit(texte, texte_rect)
+        obj.on = False
+        if not clic:
+            obj.clicked = True
 
-# --- Boucle principale ---
-i=0
+
+def bouton_hold(obj, bx):
+    souris = (pygame.mouse.get_pos()[0] / scale,
+              pygame.mouse.get_pos()[1] / scale)
+    clic = pygame.mouse.get_pressed()[0]
+    obj.held = clic and bx.collidepoint(souris)
+    obj.on   = obj.held
+    blit_sprite(obj, bx)
+    draw_label(obj, bx)
+
+
+def panneau(obj, bx):
+    try:
+        img = pygame.image.load(obj.type)
+    except Exception:
+        img = pygame.Surface((obj.L, obj.l))
+        img.fill(GRIS)
+    virtual_screen.blit(img, bx)
+    if isinstance(obj, Jauge):
+        try:
+            aig = pygame.transform.rotate(pygame.image.load("img/aiguille.png"), -obj.deg)
+        except Exception:
+            aig = pygame.Surface((10, 40), pygame.SRCALPHA)
+            pygame.draw.line(aig, ROUGE, (5, 40), (5, 0), 3)
+            aig = pygame.transform.rotate(aig, -obj.deg)
+        virtual_screen.blit(aig, aig.get_rect(center=(obj.x + obj.L//2, obj.y + obj.l - 10)))
+    else:
+        t = font.render(str(obj.valeur), True, NOIR)
+        virtual_screen.blit(t, t.get_rect(center=bx.center))
+
+
+# ── Timers ─────────────────────────────────────────────────────────────────────
+
 PHYSICS_REFRESH = pygame.USEREVENT + 1
-FAST_REFRESH = pygame.USEREVENT + 2
-
+FAST_REFRESH    = pygame.USEREVENT + 2
 pygame.time.set_timer(PHYSICS_REFRESH, 1000)
-pygame.time.set_timer(FAST_REFRESH, 500)
+pygame.time.set_timer(FAST_REFRESH,     500)
 
+# ── Boucle ─────────────────────────────────────────────────────────────────────
+
+running = True
 while running:
-    plan["jauge"].change_valeur(i)
-    i+=1
-    # On dessine dans la surface
     virtual_screen.fill(BLANC)
+    try:
+        bi = pygame.image.load("img/myimage.jpg")
+        virtual_screen.blit(pygame.transform.scale(bi, (VIRTUAL_W, VIRTUAL_H)), (0, 0))
+    except Exception:
+        pass
 
-    BG = pygame.image.load("img/myimage.jpg")
-    BG = pygame.transform.scale(BG, (VIRTUAL_W, VIRTUAL_H))
-    virtual_screen.blit(BG, (0, 0))
-    
     for event in pygame.event.get():
-        if event.type == pygame.QUIT : leave()
+        if event.type == pygame.QUIT:
+            leave()
+
         if event.type == PHYSICS_REFRESH:
-            if bg == 0:
-                plan["power"].change_valeur(f"{round(unit.thermal_power(), 2)}%")
-                plan["period"].change_valeur(f"{unit.period()}s")
             unit.refresh()
+            if bg == 0:
+                plan["power"].change_valeur(f"Power: {round(unit.thermal_power(), 2)}%")
+                plan["period"].change_valeur(f"Period: {round(unit.period(), 1)}s")
+                plan["temp"].change_valeur(f"Temp: {round(unit.reactor.temperature(), 1)}C")
+                plan["pressure"].change_valeur(f"Press: {round(unit.reactor.pressure)}")
+                plan["level"].change_valeur(f"Level: {round(unit.reactor.water_level(), 1)}")
+                plan["jauge_power"].change_valeur(min(100, unit.thermal_power()))
+            update_turbine_screen()
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 
         if event.type == FAST_REFRESH:
@@ -244,37 +334,33 @@ while running:
                 elif rods_state == -1:
                     unit.lower_rods(rodsLists)
                 change_rod_value()
+            process_hold_buttons()
             unit.fast_refresh()
             pygame.time.set_timer(FAST_REFRESH, 500)
-            
+
     for obj in plan.values():
-        box=pygame.Rect(obj.x,obj.y,obj.L,obj.l)
-        if isinstance(obj, Poussoir) or isinstance(obj, Levier):
-            if not pygame.mouse.get_pressed()[0] : obj.clicked = True
-            if bouton(obj):
+        bx = pygame.Rect(obj.x, obj.y, obj.L, obj.l)
+        if isinstance(obj, HoldButton):
+            bouton_hold(obj, bx)
+        elif isinstance(obj, Impulsion):
+            bouton_impulsion(obj, bx)
+        elif isinstance(obj, (Poussoir, Levier)):
+            if not pygame.mouse.get_pressed()[0]:
+                obj.clicked = True
+            if bouton(obj, bx):
                 if not obj.on:
-                    obj.func(obj.arg)  # <-- Execution de la fonction 1 du bouton
+                    obj.func(obj.arg)
                 else:
-                    obj.func2(obj.arg2) # <-- Execution de la fonction 2 du bouton
+                    obj.func2(obj.arg2)
                 obj.clicked = False
                 obj.on = not obj.on
-        if isinstance(obj, Afficheur):
-            panneau(obj)
+        elif isinstance(obj, Afficheur):
+            panneau(obj, bx)
 
-
-    # ---- SCALE FINAL ----
-    scaled_surface = pygame.transform.smoothscale(
-        virtual_screen,
-        (int(VIRTUAL_W * scale), int(VIRTUAL_H * scale))
+    scaled = pygame.transform.smoothscale(
+        virtual_screen, (int(VIRTUAL_W * scale), int(VIRTUAL_H * scale))
     )
-
-    # On efface la fenêtre réelle (pas necessaire à cause du fond d'écran mais on sait jamais)
     ecran.fill((0, 0, 0))
-
-    # On dessine la surface virtuelle mise à l'échelle
-    ecran.blit(scaled_surface, (0, 0))
-
-                
-
+    ecran.blit(scaled, (0, 0))
     pygame.display.update()
     clock.tick(60)

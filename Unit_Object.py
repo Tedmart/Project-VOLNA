@@ -57,7 +57,7 @@ class Unit:
                     continue
                 if rods[l]==1:
                     self.reactor.assembly[x][y].raise_rods(value)
-                    l+=1
+                l+=1
 
     def lower_rods(self, rods):
         value = -self.rods_speed
@@ -69,7 +69,7 @@ class Unit:
                     continue
                 if rods[l]==1:
                     self.reactor.assembly[x][y].raise_rods(value)
-                    l+=1
+                l+=1
 
 
 
