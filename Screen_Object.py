@@ -27,10 +27,10 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     # ════════════════════════════════════════════════════════════════════
 
     # Coordonnées de la grille (centre de chaque cellule, ordre masque)
-    CELL = 100          # pas entre cellules
+    CELL = 75          # pas entre cellules
     CX   = 910          # centre horizontal de la grille
-    CY   = 390          # centre vertical de la grille (afficheurs)
-    BTN_OFFSET = 320    # décalage vertical boutons sous les afficheurs
+    CY   = 50          # centre vertical de la grille (afficheurs)
+    BTN_OFFSET = 500    # décalage vertical boutons sous les afficheurs
 
     # Masque du cœur — (rang, col) pour chaque assemblage dans l'ordre
     # de parcours de Reactor_Object (x=rang, y=col), soit rod24→rod1
@@ -99,8 +99,11 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
         Afficheur(1650, 750, L=120, l=44, nom="jauge_power_lbl", valeur="Power"),
 
         # ── Navigation ────────────────────────────────────────────────
-        Impulsion(880, 980, L=160, l=50, nom="next",
+        Impulsion(80, 980, L=160, l=50, nom="next",
                   func=changeBg, arg=bg+1, label="Turbine >>"),
+        
+        Impulsion(200, 980, L=160, l=50, nom="Quit",
+                  func=leave, label="Quit"),
     ]
 
     # ════════════════════════════════════════════════════════════════════
@@ -121,7 +124,10 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     # ════════════════════════════════════════════════════════════════════
 
     def _valve_open(a=None):
-        unit.turbine.valve_open(unit.reactor.pressure)
+        state = unit.turbine.valve_open(unit.reactor.pressure)
+        if not state:
+            plan["valve_close"].switch()
+            plan["valve_open"].switch()
 
     def _valve_close(a=None):
         unit.turbine.valve_close()
@@ -217,14 +223,14 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  label="Closed"),
 
         # 4 HoldButtons réglage — aucun ON par défaut, sans verrouillage
-        HoldButton(BX_HOLD[0], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_fast_open",  func=_v_fast_open,  label="++ Open"),
-        HoldButton(BX_HOLD[1], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_slow_open",  func=_v_slow_open,  label="+ Open"),
-        HoldButton(BX_HOLD[2], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_slow_close", func=_v_slow_close, label="- Close"),
-        HoldButton(BX_HOLD[3], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_fast_close", func=_v_fast_close, label="-- Close"),
+        Poussoir(BX_HOLD[0], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_fast_open",  func=_v_fast_open,  label="++ Open", liens=["v_slow_open","v_slow_close","v_fast_close"]),
+        Poussoir(BX_HOLD[1], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_slow_open",  func=_v_slow_open,  label="+ Open", liens=["v_slow_close","v_fast_close","v_fast_open"]),
+        Poussoir(BX_HOLD[2], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_slow_close", func=_v_slow_close, label="- Close", liens=["v_slow_open","v_fast_close","v_fast_open"]),
+        Poussoir(BX_HOLD[3], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_fast_close", func=_v_fast_close, label="-- Close", liens=["v_slow_open","v_slow_close","v_fast_open"]),
 
         # ══════════════════════════════════════════════════════════════
         #  BYPASS
@@ -248,13 +254,13 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  label="Closed"),
 
         Poussoir(BX_HOLD[0], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_fast_open",  func=_b_fast_open,  label="++ Open"),
+                   nom="b_fast_open",  func=_b_fast_open,  label="++ Open", liens=["b_slow_open","b_slow_close","b_fast_close"]),
         Poussoir(BX_HOLD[1], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_slow_open",  func=_b_slow_open,  label="+ Open"),
+                   nom="b_slow_open",  func=_b_slow_open,  label="+ Open", liens=["b_fast_open","b_slow_close","b_fast_close"]),
         Poussoir(BX_HOLD[2], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_slow_close", func=_b_slow_close, label="- Close"),
+                   nom="b_slow_close", func=_b_slow_close, label="- Close", liens=["b_fast_open","b_slow_open","b_fast_close"]),
         Poussoir(BX_HOLD[3], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_fast_close", func=_b_fast_close, label="-- Close"),
+                   nom="b_fast_close", func=_b_fast_close, label="-- Close", liens=["b_fast_open","b_slow_open","b_slow_close"]),
 
         # ══════════════════════════════════════════════════════════════
         #  DISJONCTEUR RÉSEAU — Poussoir toggle simple
