@@ -66,8 +66,8 @@ def update_turbine_screen():
     if scr is None:
         return
     rpm = t.get_rpm()
-    scr["turb_rpm"].change_valeur(rpm)
-    scr["turb_power"].change_valeur(t.get_power())
+    #scr["turb_rpm"].change_valeur(rpm)
+    #scr["turb_power"].change_valeur(t.get_power())
     scr["turb_rpm_num"].change_valeur(f"{rpm} rpm")
     scr["turb_power_num"].change_valeur(f"{t.get_power():.1f} MW")
     scr["turb_valve_num"].change_valeur(f"Valve: {t.valve:.1f}%")
@@ -103,7 +103,7 @@ class Sprite:
 class Poussoir(Sprite):
     """Toggle classique — reste enfoncé."""
     def __init__(self, x, y, L=50, l=50,
-                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 type="img/bouton_vert1.png", typeBis="img/bouton_vert2.png",
                  nom="bo", func=None, arg=None, func2=None, arg2=None,
                  on=False, verr=False, liens=None, label=""):
         super().__init__(x, y, L, l, type, nom)
@@ -126,7 +126,7 @@ class Poussoir(Sprite):
 class Impulsion(Sprite):
     """Momentané — revient automatiquement à off après le clic."""
     def __init__(self, x, y, L=50, l=50,
-                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 type="img/bouton_vert1.png", typeBis="img/bouton_vert2.png",
                  nom="bo", func=None, arg=None, label=""):
         super().__init__(x, y, L, l, type, nom)
         self.clicked = False
@@ -142,7 +142,7 @@ class Impulsion(Sprite):
 class HoldButton(Sprite):
     """Maintenu — action répétée au fast_refresh tant que le bouton est tenu."""
     def __init__(self, x, y, L=50, l=50,
-                 type="img/poussoir.png", typeBis="img/poussoir_.png",
+                 type="img/bouton_vert1.png", typeBis="img/bouton_vert2.png",
                  nom="bo", func=None, arg=None, label=""):
         super().__init__(x, y, L, l, type, nom)
         self.held    = False
@@ -173,15 +173,20 @@ class Afficheur(Sprite):
         self.valeur = v
 
 
-class Jauge(Afficheur):
-    def __init__(self, x, y, L=70, l=49, type="img/cadrant.png", nom="bo", valeur=0, MAX=10):
-        super().__init__(x, y, L, l, type, nom, valeur)
-        self.MAX = MAX; self.deg = 0
 
-    def change_valeur(self, valeur):
+class Jauge(Afficheur):
+    def __init__(self,x,y,L=70,l=49,type="img/cadrant.png",nom="bo",valeur=0,MAX=10):
+        Afficheur.__init__(self,x,y,L,l,type,nom,valeur)
+        self.MAX=MAX
+        deg = 0
+        self.deg=deg
+        self.box = pygame.Rect(x,y,L,l)
+
+    def change_valeur(self,valeur):
         self.valeur = valeur
-        v = valeur % self.MAX if self.MAX != 0 else 0
-        self.deg = int(round((v / self.MAX) * 180, 0))
+        MAX = self.MAX
+        valeur = valeur%MAX
+        self.deg=int(round((valeur/MAX)*180,0))
 
 
 # ── Initialisation Pygame ──────────────────────────────────────────────────────
@@ -306,7 +311,7 @@ running = True
 while running:
     virtual_screen.fill(BLANC)
     try:
-        bi = pygame.image.load("img/myimage.jpg")
+        bi = pygame.image.load("img/fond.png")
         virtual_screen.blit(pygame.transform.scale(bi, (VIRTUAL_W, VIRTUAL_H)), (0, 0))
     except Exception:
         pass
@@ -323,7 +328,7 @@ while running:
                 plan["temp"].change_valeur(f"Temp: {round(unit.reactor.temperature(), 1)}C")
                 plan["pressure"].change_valeur(f"Press: {round(unit.reactor.pressure)}")
                 plan["level"].change_valeur(f"Level: {round(unit.reactor.water_level(), 1)}")
-                plan["jauge_power"].change_valeur(min(100, unit.thermal_power()))
+                #plan["jauge_power"].change_valeur(min(100, unit.thermal_power()))
             update_turbine_screen()
             pygame.time.set_timer(PHYSICS_REFRESH, 1000)
 

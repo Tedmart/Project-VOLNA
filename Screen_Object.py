@@ -31,7 +31,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     # ════════════════════════════════════════════════════════════════════
 
     # Coordonnées de la grille (centre de chaque cellule, ordre masque)
-    CELL = 75          # pas entre cellules
+    CELL = 85          # pas entre cellules
     CX   = 910         # centre horizontal de la grille
     CY   = 50          # centre vertical de la grille (afficheurs)
     BTN_OFFSET = 500   # décalage vertical boutons sous les afficheurs
@@ -96,29 +96,29 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
         Afficheur( 80, 520, L=180, l=44, nom="level",   valeur="Level: --"),
 
         # ── Commandes barres — droite ─────────────────────────────────
-        Poussoir(1650, 350, L=120, l=60, nom="lever bars",
+        Poussoir(1650, 300, L=120, l=60, nom="lever bars",
                  func=barres, arg=1,  verr=True,
                  liens=["baisser bars", "stopper bars"],
                  label="Rod Up"),
-        Poussoir(1650, 450, L=120, l=60, nom="stopper bars",
+        Poussoir(1650, 425, L=120, l=60, nom="stopper bars",
                  func=barres, arg=0,  on=True, verr=True,
                  liens=["lever bars", "baisser bars"],
-                 label="Rod Stop"),
+                 label="Rod Stop", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
         Poussoir(1650, 550, L=120, l=60, nom="baisser bars",
                  func=barres, arg=-1, verr=True,
                  liens=["lever bars", "stopper bars"],
                  label="Rod Down"),
 
         # ── Jauges droite ─────────────────────────────────────────────
-        Jauge(1650, 650, L=120, l=80, nom="jauge_power", MAX=100, valeur=0),
+        #Jauge(1650, 650, L=120, l=80, nom="jauge_power", MAX=100, valeur=0),
         Afficheur(1650, 750, L=120, l=44, nom="jauge_power_lbl", valeur="Power"),
 
         # ── Navigation ────────────────────────────────────────────────
         Impulsion(80, 980, L=160, l=50, nom="next",
-                  func=changeBg, arg=bg+1, label="Turbine >>"),
+                  func=changeBg, arg=bg+1, label="Turbine >>", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
         
         Impulsion(200, 980, L=160, l=50, nom="Quit",
-                  func=leave, label="Quit"),
+                  func=leave, label="Quit", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
     ]
 
     # ════════════════════════════════════════════════════════════════════
@@ -140,7 +140,10 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     # ════════════════════════════════════════════════════════════════════
 
     def _valve_open(a=None):
-        unit.turbine.valve_open(unit.reactor.pressure)
+        state = unit.turbine.valve_open(unit.reactor.pressure)
+        if not state:
+            plan["valve_open"].switch()
+            plan["valve_close"].switch()
 
     def _valve_close(a=None):
         unit.turbine.valve_close()
@@ -192,16 +195,16 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
 
     # Boutons open/close : côte à côte
     # 4 hold : côte à côte en dessous
-    BX_OPENCLOSE = [VX, VX + BW + 10]
+    BX_OPENCLOSE = [VX, VX + BW + 20]
     BX_HOLD      = [VX + i*(BW+8) for i in range(4)]
 
     objs2 = [
         # ── Jauges analogiques ────────────────────────────────────────
-        Jauge(80, 150, L=120, l=80, nom="turb_rpm",   MAX=1500, valeur=0),
+        #Jauge(80, 150, L=120, l=80, nom="turb_rpm",   MAX=1500, valeur=0),
         Afficheur(80, 250, L=120, l=44, nom="turb_rpm_num", valeur="0 rpm"),
         Afficheur(80, 310, L=120, l=30, nom="turb_rpm_lbl", valeur="RPM"),
 
-        Jauge(80, 400, L=120, l=80, nom="turb_power", MAX=100, valeur=0),
+        #Jauge(80, 400, L=120, l=80, nom="turb_power", MAX=100, valeur=0),
         Afficheur(80, 500, L=120, l=44, nom="turb_power_num", valeur="0 MW"),
         Afficheur(80, 550, L=120, l=30, nom="turb_power_lbl", valeur="Power"),
 
@@ -216,7 +219,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
         #  VALVE PRINCIPALE
         # ══════════════════════════════════════════════════════════════
 
-        Afficheur(VX, VY1 - 50, L=200, l=40, nom="valve_title", valeur="Main Valve"),
+        Afficheur(VX, VY1 - 70, L=200, l=40, nom="valve_title", valeur="Main Valve"),
 
         # Open / Closed — Poussoir verrouillé, Closed ON par défaut
         Poussoir(BX_OPENCLOSE[0], VY1, L=BW, l=BH,
@@ -225,7 +228,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  func2=nothing,    arg2=None,
                  on=False, verr=True,
                  liens=["valve_close"],
-                 label="Open"),
+                 label="Open", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
         Poussoir(BX_OPENCLOSE[1], VY1, L=BW, l=BH,
                  nom="valve_close",
                  func=_valve_close, arg=None,
@@ -235,20 +238,20 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  label="Closed"),
 
         # 4 HoldButtons réglage — action répétée au FAST_REFRESH tant que maintenu
-        HoldButton(BX_HOLD[0], VY1 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[0], VY1 + BH + 50, L=BW, l=BH,
                    nom="v_fast_open",  func=_v_fast_open,  label="++ Open"),
-        HoldButton(BX_HOLD[1], VY1 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[1], VY1 + BH + 50, L=BW, l=BH,
                    nom="v_slow_open",  func=_v_slow_open,  label="+ Open"),
-        HoldButton(BX_HOLD[2], VY1 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[2], VY1 + BH + 50, L=BW, l=BH,
                    nom="v_slow_close", func=_v_slow_close, label="- Close"),
-        HoldButton(BX_HOLD[3], VY1 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[3], VY1 + BH + 50, L=BW, l=BH,
                    nom="v_fast_close", func=_v_fast_close, label="-- Close"),
 
         # ══════════════════════════════════════════════════════════════
         #  BYPASS
         # ══════════════════════════════════════════════════════════════
 
-        Afficheur(VX, VY2 - 50, L=200, l=40, nom="bypass_title", valeur="Bypass"),
+        Afficheur(VX, VY2 - 70, L=200, l=40, nom="bypass_title", valeur="Bypass"),
 
         Poussoir(BX_OPENCLOSE[0], VY2, L=BW, l=BH,
                  nom="bypass_open",
@@ -256,7 +259,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  func2=nothing,     arg2=None,
                  on=False, verr=True,
                  liens=["bypass_close"],
-                 label="Open"),
+                 label="Open", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
         Poussoir(BX_OPENCLOSE[1], VY2, L=BW, l=BH,
                  nom="bypass_close",
                  func=_bypass_close, arg=None,
@@ -265,13 +268,13 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  liens=["bypass_open"],
                  label="Closed"),
 
-        HoldButton(BX_HOLD[0], VY2 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[0], VY2 + BH + 50, L=BW, l=BH,
                    nom="b_fast_open",  func=_b_fast_open,  label="++ Open"),
-        HoldButton(BX_HOLD[1], VY2 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[1], VY2 + BH + 50, L=BW, l=BH,
                    nom="b_slow_open",  func=_b_slow_open,  label="+ Open"),
-        HoldButton(BX_HOLD[2], VY2 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[2], VY2 + BH + 50, L=BW, l=BH,
                    nom="b_slow_close", func=_b_slow_close, label="- Close"),
-        HoldButton(BX_HOLD[3], VY2 + BH + 20, L=BW, l=BH,
+        HoldButton(BX_HOLD[3], VY2 + BH + 50, L=BW, l=BH,
                    nom="b_fast_close", func=_b_fast_close, label="-- Close"),
 
         # ══════════════════════════════════════════════════════════════
@@ -285,7 +288,7 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  func=_breaker, arg=None,
                  func2=_breaker, arg2=None,
                  on=False, verr=False, liens=[],
-                 label="Breaker"),
+                 label="Breaker", type="img/bouton_rouge1.png", typeBis="img/bouton_rouge2.png"),
 
         # ── Navigation ────────────────────────────────────────────────
         Impulsion(80, 980, L=160, l=50, nom="back",

@@ -82,6 +82,7 @@ class Turbine:
             self.electrical_power = round(
                 couple_vapeur * self._omega * self.RENDEMENT / 1e4, 2
             )
+            self.rpm = 1500
         else:
             self.electrical_power = 0.0
 
