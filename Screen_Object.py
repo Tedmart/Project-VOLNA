@@ -21,16 +21,20 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     #    rang4 (y=640): col1..col4          → 4
     #    rang5 (y=740): col2,col3           → 2
     #
-    #  Les boutons (sélection) sont en bas (y+300) des afficheurs.
+    #  Les boutons (sélection) sont en bas (y+BTN_OFFSET) des afficheurs.
     #  Numérotation : rod1..rod24 / B1..B24 dans le même ordre
     #  que change_rod_value() : c=24 décroissant, assemblage (0,2)..(5,3)
+    #
+    #  CORRECTION : les boutons sont inversés horizontalement ET verticalement
+    #  par rapport aux afficheurs. On garde la même disposition pixel pour
+    #  les afficheurs, mais on mappe les boutons en miroir (rang et col inversés).
     # ════════════════════════════════════════════════════════════════════
 
     # Coordonnées de la grille (centre de chaque cellule, ordre masque)
     CELL = 75          # pas entre cellules
-    CX   = 910          # centre horizontal de la grille
+    CX   = 910         # centre horizontal de la grille
     CY   = 50          # centre vertical de la grille (afficheurs)
-    BTN_OFFSET = 500    # décalage vertical boutons sous les afficheurs
+    BTN_OFFSET = 500   # décalage vertical boutons sous les afficheurs
 
     # Masque du cœur — (rang, col) pour chaque assemblage dans l'ordre
     # de parcours de Reactor_Object (x=rang, y=col), soit rod24→rod1
@@ -44,16 +48,27 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     ]
     # rod24 = assemblage[0][2], rod23 = [0][3], ..., rod1 = [5][3]
     # change_rod_value() parcourt c=24→1, donc index 0 = rod24
-    # On génère dans le même ordre (c=24 décroissant)
+
+    # Pour l'inversion des boutons : miroir horizontal (col → 5-col)
+    # et vertical (rang → 5-rang)
+    MAX_R = 5
+    MAX_C = 5
 
     afficheurs_barres = []
     boutons_barres    = []
     for idx, (r, c) in enumerate(core_positions):
         rod_num = 24 - idx          # rod24 → rod1
+
+        # Position pixel de l'afficheur (inchangée)
         px = CX + (c - 2.5) * CELL
         py = CY + r * CELL
-        bx = px
-        by = py + BTN_OFFSET
+
+        # Position pixel du bouton : rang et col inversés (miroir H+V)
+        r_inv = MAX_R - r
+        c_inv = MAX_C - c
+        bx = CX + (c_inv - 2.5) * CELL
+        by = CY + r_inv * CELL + BTN_OFFSET
+
         afficheurs_barres.append(
             Afficheur(int(px), int(py), L=70, l=44, nom=f"rod{rod_num}", valeur="0")
         )
@@ -119,15 +134,13 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     #  Vannes :
     #    - 1 Poussoir verrouillé "Open" / "Closed" (closed par défaut)
     #    - 4 HoldButtons réglage (lent/rapide ouv/ferm)
+    #      → action répétée à chaque FAST_REFRESH (500ms) tant que maintenu
     #
     #  Disjoncteur : Poussoir toggle simple
     # ════════════════════════════════════════════════════════════════════
 
     def _valve_open(a=None):
-        state = unit.turbine.valve_open(unit.reactor.pressure)
-        if not state:
-            plan["valve_close"].switch()
-            plan["valve_open"].switch()
+        unit.turbine.valve_open(unit.reactor.pressure)
 
     def _valve_close(a=None):
         unit.turbine.valve_close()
@@ -141,31 +154,31 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
     def _breaker(a=None):
         unit.turbine.breaker()
 
-    # HoldButton valeur par tick (500ms)
-    # rapide = 1% , lent = 0.5%
+    # HoldButton — appelé à chaque FAST_REFRESH (500ms) tant que maintenu
+    # ++ / -- : 1.0 % par tick   |   + / - : 0.5 % par tick
     def _v_fast_open(a=None):
-        unit.turbine.valve_setpoint(min(100, unit.turbine.valve + 1.0))
+        unit.turbine.valve_setpoint(unit.turbine.valve + 1.0)
 
     def _v_slow_open(a=None):
-        unit.turbine.valve_setpoint(min(100, unit.turbine.valve + 0.5))
+        unit.turbine.valve_setpoint(unit.turbine.valve + 0.5)
 
     def _v_slow_close(a=None):
-        unit.turbine.valve_setpoint(max(0, unit.turbine.valve - 0.5))
+        unit.turbine.valve_setpoint(unit.turbine.valve - 0.5)
 
     def _v_fast_close(a=None):
-        unit.turbine.valve_setpoint(max(0, unit.turbine.valve - 1.0))
+        unit.turbine.valve_setpoint(unit.turbine.valve - 1.0)
 
     def _b_fast_open(a=None):
-        unit.turbine.bypass_setpoint(min(100, unit.turbine.bypass + 1.0))
+        unit.turbine.bypass_setpoint(unit.turbine.bypass + 1.0)
 
     def _b_slow_open(a=None):
-        unit.turbine.bypass_setpoint(min(100, unit.turbine.bypass + 0.5))
+        unit.turbine.bypass_setpoint(unit.turbine.bypass + 0.5)
 
     def _b_slow_close(a=None):
-        unit.turbine.bypass_setpoint(max(0, unit.turbine.bypass - 0.5))
+        unit.turbine.bypass_setpoint(unit.turbine.bypass - 0.5)
 
     def _b_fast_close(a=None):
-        unit.turbine.bypass_setpoint(max(0, unit.turbine.bypass - 1.0))
+        unit.turbine.bypass_setpoint(unit.turbine.bypass - 1.0)
 
     # Largeur bouton vanne
     BW = 90   # largeur
@@ -179,8 +192,8 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
 
     # Boutons open/close : côte à côte
     # 4 hold : côte à côte en dessous
-    BX_OPENCLOSE = [VX, VX + BW + 10]                        # x open, x close
-    BX_HOLD      = [VX + i*(BW+8) for i in range(4)]         # x des 4 holds
+    BX_OPENCLOSE = [VX, VX + BW + 10]
+    BX_HOLD      = [VX + i*(BW+8) for i in range(4)]
 
     objs2 = [
         # ── Jauges analogiques ────────────────────────────────────────
@@ -203,7 +216,6 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
         #  VALVE PRINCIPALE
         # ══════════════════════════════════════════════════════════════
 
-        # Titre
         Afficheur(VX, VY1 - 50, L=200, l=40, nom="valve_title", valeur="Main Valve"),
 
         # Open / Closed — Poussoir verrouillé, Closed ON par défaut
@@ -222,15 +234,15 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  liens=["valve_open"],
                  label="Closed"),
 
-        # 4 HoldButtons réglage — aucun ON par défaut, sans verrouillage
-        Poussoir(BX_HOLD[0], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_fast_open",  func=_v_fast_open,  label="++ Open", liens=["v_slow_open","v_slow_close","v_fast_close"]),
-        Poussoir(BX_HOLD[1], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_slow_open",  func=_v_slow_open,  label="+ Open", liens=["v_slow_close","v_fast_close","v_fast_open"]),
-        Poussoir(BX_HOLD[2], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_slow_close", func=_v_slow_close, label="- Close", liens=["v_slow_open","v_fast_close","v_fast_open"]),
-        Poussoir(BX_HOLD[3], VY1 + BH + 20, L=BW, l=BH,
-                   nom="v_fast_close", func=_v_fast_close, label="-- Close", liens=["v_slow_open","v_slow_close","v_fast_open"]),
+        # 4 HoldButtons réglage — action répétée au FAST_REFRESH tant que maintenu
+        HoldButton(BX_HOLD[0], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_fast_open",  func=_v_fast_open,  label="++ Open"),
+        HoldButton(BX_HOLD[1], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_slow_open",  func=_v_slow_open,  label="+ Open"),
+        HoldButton(BX_HOLD[2], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_slow_close", func=_v_slow_close, label="- Close"),
+        HoldButton(BX_HOLD[3], VY1 + BH + 20, L=BW, l=BH,
+                   nom="v_fast_close", func=_v_fast_close, label="-- Close"),
 
         # ══════════════════════════════════════════════════════════════
         #  BYPASS
@@ -253,14 +265,14 @@ def objects(Poussoir, Afficheur, Levier, Jauge, Impulsion, HoldButton,
                  liens=["bypass_open"],
                  label="Closed"),
 
-        Poussoir(BX_HOLD[0], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_fast_open",  func=_b_fast_open,  label="++ Open", liens=["b_slow_open","b_slow_close","b_fast_close"]),
-        Poussoir(BX_HOLD[1], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_slow_open",  func=_b_slow_open,  label="+ Open", liens=["b_fast_open","b_slow_close","b_fast_close"]),
-        Poussoir(BX_HOLD[2], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_slow_close", func=_b_slow_close, label="- Close", liens=["b_fast_open","b_slow_open","b_fast_close"]),
-        Poussoir(BX_HOLD[3], VY2 + BH + 20, L=BW, l=BH,
-                   nom="b_fast_close", func=_b_fast_close, label="-- Close", liens=["b_fast_open","b_slow_open","b_slow_close"]),
+        HoldButton(BX_HOLD[0], VY2 + BH + 20, L=BW, l=BH,
+                   nom="b_fast_open",  func=_b_fast_open,  label="++ Open"),
+        HoldButton(BX_HOLD[1], VY2 + BH + 20, L=BW, l=BH,
+                   nom="b_slow_open",  func=_b_slow_open,  label="+ Open"),
+        HoldButton(BX_HOLD[2], VY2 + BH + 20, L=BW, l=BH,
+                   nom="b_slow_close", func=_b_slow_close, label="- Close"),
+        HoldButton(BX_HOLD[3], VY2 + BH + 20, L=BW, l=BH,
+                   nom="b_fast_close", func=_b_fast_close, label="-- Close"),
 
         # ══════════════════════════════════════════════════════════════
         #  DISJONCTEUR RÉSEAU — Poussoir toggle simple

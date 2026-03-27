@@ -34,15 +34,15 @@ class Reactor:
 
         # Gestion de la température
         self.water_temperature = 30
-        self.heat_per_power = 200
+        self.heat_per_power = 300
         self.energy_loss_coefficient = 0.03/100
         self.ambient_temperature = 30
 
         # Gestion de l'eau
         self.water_amount = 5000
         self.steam_amount = 0
-        self.boiling_coefficient = 3
-        self.condensation_coefficient = 3
+        self.boiling_coefficient = 2
+        self.condensation_coefficient = 4
         self.pressure = 0
         self.steam_pressure_coefficient = 0.5
         self.saturation_temperature = boiling_point(self.pressure)
@@ -127,6 +127,9 @@ class Reactor:
         self.water_temperature = (( self.water_temperature + pump.flow * feedwater_temperature * MIXING_COEFF ) / 
                                   ( 1 + pump.flow * MIXING_COEFF ))
         self.water_amount += int(pump.flow)
+
+    def add_water_bis(self, amount):
+        self.water_amount += amount
 
     def remove_steam(self, amount):
         self.steam_amount -= amount

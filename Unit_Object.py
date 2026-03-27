@@ -37,6 +37,7 @@ class Unit:
         steam_to_remove = self.turbine.refresh(pressure)
 
         self.reactor.remove_steam(steam_to_remove)
+        self.reactor.add_water_bis(steam_to_remove)
 
         self.reactor.refresh()
 
