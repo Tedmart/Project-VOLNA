@@ -69,6 +69,6 @@ Le contrôle est très compliqué car il n'y a aucun système de sécurité
 
 👥 Auteurs
 
-Antoine
-Thomas
+Antoine (Développeur de la simulation)
+Thomas (Développeur du moteur graphique et des designs)
 (Nos noms resterons anonymes)
